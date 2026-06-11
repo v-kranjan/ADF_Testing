@@ -1,0 +1,3924 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-intellibi"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Contacts')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Fetch_API_Data",
+								"type": "DatasetReference"
+							},
+							"name": "GetContacts"
+						},
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity_Lookup",
+								"type": "DatasetReference"
+							},
+							"name": "GetAccountID"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "lookup1"
+						},
+						{
+							"name": "flatten1"
+						},
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "derivedColumn1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          body as (currentPageNumber as short, data as (buyFromBusinessPartner as string, cellNumber as string, company as short, contactCode as short, customerCode as string, customerName as string, department as string, designation as string, division as short, eXtendKey as string, eet_contactcode as string, eet_extendcompany as short, eet_syncwithextend as short, email as string, fax as string, firstName as string, fullName as string, invoiceFromBusinessPartner as string, invoiceToBusinessPartner as short, lastName as string, middleName as string, mobileNumber as string, payFromBusinessPartner as boolean, payToBusinessPartner as string, phone as string, shipFromBusinessPartner as string, shipToBusinessPartner as string, soldToBusinessPartner as short, statecode as short, title as string)[], more as boolean, nextPageNumber as short, pageSize as short, totalPages as short, totalRecords as short),",
+						"          headers as [string,string]",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     httpMethod: 'GET',",
+						"     timeout: 30,",
+						"     requestInterval: 0,",
+						"     headers: ['Authorization' -> (concat('Bearer ', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IklEMUdXRDdEQTJNMTREMzZBQiRZVUkyMzREOVVKMjM0NUYkS0owOSJ9.eyJqdGkiOiIyNDI2MmQ1NS0xNzRhLTQ2NjYtYTkwZC0zZTU0YjEwNzg5ZDkiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IklEIiwiZXhwIjoxNzU1NzY2OTk0LCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjU2ODY2LyIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NTY4NjYvIn0.ZjSCmbVZzZb3eNOWN8_jCVlsG6X9S2_SuG_Ov2jL2J0'))],",
+						"     paginationRules: ['supportRFC5988' -> 'true'],",
+						"     responseFormat: ['type' -> 'json', 'documentForm' -> 'singleDocument'],",
+						"     booleanFormat: ['true', 'false']) ~> GetContacts",
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          accountid as string,",
+						"          accountnumber as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n   <entity name=\"account\">\\n       <attribute name=\"accountid\" />\\n       <attribute name=\"accountnumber\" />\\n \\n   </entity>\\n</fetch>\\n') ~> GetAccountID",
+						"flatten1, GetAccountID lookup(trim(customerCode) == trim(accountnumber),",
+						"     multiple: true,",
+						"     broadcast: 'auto',",
+						"     pickup: 'any')~> lookup1",
+						"GetContacts foldDown(unroll(body.data),",
+						"     mapColumn(",
+						"          body = body.data.buyFromBusinessPartner,",
+						"          cellNumber = body.data.cellNumber,",
+						"          contactcode = body.data.contactCode,",
+						"          customerCode = body.data.customerCode,",
+						"          customerName = body.data.customerName,",
+						"          department = body.data.department,",
+						"          fullName = body.data.fullName,",
+						"          email = body.data.email,",
+						"          eet_extendcompany = body.data.soldToBusinessPartner,",
+						"          ownerid = body.data.shipToBusinessPartner,",
+						"          statecode = body.data.invoiceToBusinessPartner,",
+						"          eet_syncwithextend = body.data.payFromBusinessPartner,",
+						"          lastName = body.data.lastName,",
+						"          eet_contactcode = body.data.eet_contactcode,",
+						"          firstName = body.data.firstName,",
+						"          phone = body.data.phone,",
+						"          fax = body.data.fax,",
+						"          extendkey = body.data.eXtendKey",
+						"     ),",
+						"     skipDuplicateMapInputs: false,",
+						"     skipDuplicateMapOutputs: false) ~> flatten1",
+						"lookup1 alterRow(upsertIf(true())) ~> AlterRow1",
+						"AlterRow1 derive({parentcustomerid_account@odata.bind} = \"/accounts(\" + accountid + \")\") ~> derivedColumn1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     alternateKeyName: 'crdb8_extendkey',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          {parentcustomerid_account@odata.bind},",
+						"          fullname = fullName,",
+						"          eet_contactcode,",
+						"          eet_extendcompany,",
+						"          lastname = lastName,",
+						"          eet_syncwithextend,",
+						"          firstname = firstName,",
+						"          emailaddress1 = email,",
+						"          eet_extendkey = extendkey",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Contacts_DEV')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DS_ID_FabricLakehouse",
+								"type": "DatasetReference"
+							},
+							"name": "GetContacts"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_iddev_dynamicscrm",
+								"type": "DatasetReference"
+							},
+							"name": "GetAccountID"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_iddev_dynamicscrm",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "join1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          CustomerCode as string,",
+						"          ContactCode as string,",
+						"          firstname as string,",
+						"          lastname as string,",
+						"          eet_syncwithextend as integer,",
+						"          emailaddress1 as string,",
+						"          eet_extendcompany as integer,",
+						"          statecode as integer,",
+						"          fullname as string,",
+						"          eet_extendkey as string,",
+						"          eet_contactcode as string,",
+						"          CompanyID as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT CustomerCode, ContactCode, FirstName AS firstname, LastName AS lastname, Email AS emailaddress1, 100 AS eet_extendcompany, 0 AS statecode,  concat(FirstName, \\' \\', LastName) AS fullname, concat(trim(CustomerCode), \\'-\\', trim(ContactCode)) AS eet_extendkey, substring(concat(trim(CustomerCode), \\'-\\', trim(ContactCode)),0,9) AS eet_contactcode, CompanyID from dimcontactbybusinesspartner WHERE trim(CompanyID) = \\'01DEP\\' and trim(FirstName) not like \\'.%\\'   AND CustomerCode not like \\'.%\\'     ',",
+						"     format: 'query',",
+						"     booleanFormat: ['true', 'false']) ~> GetContacts",
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          accountid as string,",
+						"          accountnumber as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n   <entity name=\"account\">\\n       <attribute name=\"accountid\" />\\n       <attribute name=\"accountnumber\" />\\n \\n   </entity>\\n</fetch>\\n') ~> GetAccountID",
+						"join1 alterRow(upsertIf(true())) ~> AlterRow1",
+						"AlterRow1 derive({parentcustomerid_account@odata.bind} = \"/accounts(\" + accountid+ \")\",",
+						"          eet_syncwithextend = true()) ~> derivedColumn1",
+						"GetContacts, GetAccountID join(CustomerCode == accountnumber,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     alternateKeyName: 'eet_contacts_key',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          {parentcustomerid_account@odata.bind},",
+						"          fullname,",
+						"          eet_contactcode,",
+						"          lastname,",
+						"          eet_extendkey,",
+						"          firstname,",
+						"          emailaddress1,",
+						"          eet_extendcompany,",
+						"          eet_syncwithextend",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Contacts_ID_DEMO')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "LS_ID_DEMO_FabricLakehouse",
+								"type": "DatasetReference"
+							},
+							"name": "GetContacts",
+							"description": "Import data from DS_ID_DEMO_FabricLakehouse"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_id_demo_dynamicscrm",
+								"type": "DatasetReference"
+							},
+							"name": "GetAccountID"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_id_demo_dynamicscrm",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "join1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          CustomerCode as string,",
+						"          ContactCode as string,",
+						"          firstname as string,",
+						"          lastname as string,",
+						"          eet_syncwithextend as integer,",
+						"          emailaddress1 as string,",
+						"          eet_extendcompany as integer,",
+						"          statecode as integer,",
+						"          fullname as string,",
+						"          eet_extendkey as string,",
+						"          eet_contactcode as string,",
+						"          CompanyID as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT CustomerCode, ContactCode, FirstName AS firstname, LastName AS lastname, Email AS emailaddress1, 100 AS eet_extendcompany, 0 AS statecode,  concat(FirstName, \\' \\', LastName) AS fullname, concat(trim(CustomerCode), \\'-\\', trim(ContactCode)) AS eet_extendkey, substring(concat(trim(CustomerCode), \\'-\\', trim(ContactCode)),0,9) AS eet_contactcode, CompanyID from dimcontactbybusinesspartner WHERE trim(CompanyID) = \\'01DEM\\' and trim(FirstName) not like \\'.%\\'   AND CustomerCode not like \\'.%\\'     ',",
+						"     format: 'query',",
+						"     booleanFormat: ['true', 'false']) ~> GetContacts",
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          accountid as string,",
+						"          accountnumber as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n   <entity name=\"account\">\\n       <attribute name=\"accountid\" />\\n       <attribute name=\"accountnumber\" />\\n \\n   </entity>\\n</fetch>\\n') ~> GetAccountID",
+						"join1 alterRow(upsertIf(true())) ~> AlterRow1",
+						"AlterRow1 derive({parentcustomerid_account@odata.bind} = \"/accounts(\" + accountid+ \")\",",
+						"          eet_syncwithextend = true()) ~> derivedColumn1",
+						"GetContacts, GetAccountID join(CustomerCode == accountnumber,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     alternateKeyName: 'eet_contacts_key',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          {parentcustomerid_account@odata.bind},",
+						"          fullname,",
+						"          eet_contactcode,",
+						"          lastname,",
+						"          eet_extendkey,",
+						"          firstname,",
+						"          emailaddress1,",
+						"          eet_extendcompany,",
+						"          eet_syncwithextend",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Equip_ItemAssociations')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "AzureSqlTable2",
+								"type": "DatasetReference"
+							},
+							"name": "GetUnitNumber"
+						},
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity_Lookup",
+								"type": "DatasetReference"
+							},
+							"name": "GetProductFromCRM"
+						},
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity_Lookup1",
+								"type": "DatasetReference"
+							},
+							"name": "GetproductIDfromProduct"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "lookup1"
+						},
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "lookup2"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     Token as string",
+						"}",
+						"source(output(",
+						"          UnitNumber as string,",
+						"          Model as string,",
+						"          eet_effectivedate as date,",
+						"          eet_expirydate as date,",
+						"          eet_price as decimal(20,4),",
+						"          eet_costprice as decimal(20,4),",
+						"          eet_businessunit as string,",
+						"          organizationid as string,",
+						"          EquipmentType as string,",
+						"          name as string,",
+						"          statecode as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     procedureName: 'EquipmentItemAssociations',",
+						"     schemaName: 'depapi',",
+						"     resultSet: true,",
+						"     format: 'procedure',",
+						"     booleanFormat: ['true', 'false']) ~> GetUnitNumber",
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          eet_modelcode as string,",
+						"          eet_parentproductitemid as string,",
+						"          name as string,",
+						"          productid as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n   <entity name=\"product\">\\n       <attribute name=\"eet_unitnumber\" />\\n       <attribute name=\"productid\" alias=\"eet_parentproductitemid\"/>\\n       <attribute name=\"name\" />\\n       <attribute name=\"eet_modelcode\" />\\n       <filter>\\n           <condition attribute=\"eet_modelcode\" operator=\"eq\" value=\"C-99\" />\\n           <condition attribute=\"eet_unitnumber\" operator=\"null\" />\\n       </filter>\\n   </entity>\\n</fetch>\\n') ~> GetProductFromCRM",
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          eet_childproductitemid as string,",
+						"          eet_unitnumber as string,",
+						"          name as string,",
+						"          productid as string,",
+						"          productnumber as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n   <entity name=\"product\" >\\n       <attribute name=\"productid\" alias=\"eet_childproductitemid\"/>\\n       <attribute name=\"productnumber\" />\\n       <attribute name=\"name\" />\\n       <attribute name=\"eet_unitnumber\" />\\n       <filter>\\n           <condition attribute=\"eet_modelcode\" operator=\"eq\" value=\"C-99\" />\\n           <condition attribute=\"eet_unitnumber\" operator=\"not-null\" />\\n       </filter>\\n   </entity>\\n</fetch>\\n') ~> GetproductIDfromProduct",
+						"GetProductFromCRM, GetproductIDfromProduct lookup(GetProductFromCRM@name == GetproductIDfromProduct@name,",
+						"     multiple: true,",
+						"     broadcast: 'auto',",
+						"     pickup: 'any')~> lookup1",
+						"lookup2 alterRow(upsertIf(true())) ~> AlterRow1",
+						"AlterRow1 derive({eet_parentproductitemid@odata.bind} = \"/products(\" + eet_parentproductitemid + \")\",",
+						"          {eet_childproductitemid@odata.bind} = \"/products(\" + eet_childproductitemid + \")\",",
+						"          {eet_businessunit@odata.bind} = \"/businessunits(\" + eet_businessunit + \")\") ~> derivedColumn1",
+						"lookup1, GetUnitNumber lookup(GetProductFromCRM@name == GetUnitNumber@name,",
+						"     multiple: true,",
+						"     broadcast: 'auto',",
+						"     pickup: 'any')~> lookup2",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     alternateKeyName: 'crdb8_parentchildproductid',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          {eet_parentproductitemid@odata.bind},",
+						"          {eet_childproductitemid@odata.bind},",
+						"          eet_costprice,",
+						"          eet_price,",
+						"          {eet_businessunit@odata.bind},",
+						"          eet_effectivedate,",
+						"          eet_expirydate,",
+						"          statecode",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Equip_ListPrice')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "AzureSqlTable2",
+								"type": "DatasetReference"
+							},
+							"name": "GetUnitNumber"
+						},
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity_Lookup1",
+								"type": "DatasetReference"
+							},
+							"name": "GetproductIDfromProduct"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "lookup1"
+						},
+						{
+							"name": "filter1"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     Token as string",
+						"}",
+						"source(output(",
+						"          eet_unitnumber as string,",
+						"          name as string,",
+						"          eet_effectivedate as date,",
+						"          eet_expirydate as date,",
+						"          eet_price as decimal(20,4),",
+						"          statecode as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     procedureName: 'EquipmentListPrice',",
+						"     schemaName: 'depapi',",
+						"     resultSet: true,",
+						"     format: 'procedure',",
+						"     booleanFormat: ['true', 'false']) ~> GetUnitNumber",
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          eet_unitnumber as string,",
+						"          productid as string,",
+						"          productnumber as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n   <entity name=\"product\">\\n       <attribute name=\"productid\" />\\n       <attribute name=\"productnumber\" />\\n       <attribute name=\"name\" alias=\"productname\" />\\n       <attribute name=\"eet_unitnumber\" />\\n       <filter type=\"and\">\\n         \\n           <condition attribute=\"eet_unitnumber\" operator=\"not-null\" />\\n           <condition attribute=\"productnumber\" operator=\"not-null\" />\\n       </filter>\\n   </entity>\\n</fetch>\\n') ~> GetproductIDfromProduct",
+						"lookup1 alterRow(upsertIf(true())) ~> AlterRow1",
+						"filter1 derive({eet_productid@odata.bind} = \"/products(\" + productid + \")\") ~> derivedColumn1",
+						"GetUnitNumber, GetproductIDfromProduct lookup(trim(GetUnitNumber@eet_unitnumber) == trim(GetproductIDfromProduct@eet_unitnumber),",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> lookup1",
+						"AlterRow1 filter(isNull(productnumber) == false()) ~> filter1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     alternateKeyName: 'crdb8_key',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          {eet_productid@odata.bind},",
+						"          eet_effectivedate,",
+						"          eet_expirydate,",
+						"          eet_price,",
+						"          statecode,",
+						"          eet_name = GetUnitNumber@eet_unitnumber",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Equip_Manufacturer')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "AzureSqlTable2",
+								"type": "DatasetReference"
+							},
+							"name": "GetUnitNumber"
+						},
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity_Lookup",
+								"type": "DatasetReference"
+							},
+							"name": "GetProductCategoryIdFromCRM"
+						},
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity_Lookup1",
+								"type": "DatasetReference"
+							},
+							"name": "GetproductIDfromProduct"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "lookup1"
+						},
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "lookup2"
+						},
+						{
+							"name": "filter1"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     Token as string",
+						"}",
+						"source(output(",
+						"          UnitNumber as string,",
+						"          eet_name as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     procedureName: 'EquipmentProductCategory',",
+						"     schemaName: 'depapi',",
+						"     resultSet: true,",
+						"     format: 'procedure',",
+						"     booleanFormat: ['true', 'false']) ~> GetUnitNumber",
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          eet_name as string,",
+						"          eet_productcategoryid as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n   <entity name=\"eet_productcategory\">\\n       <attribute name=\"eet_productcategoryid\" />\\n       <attribute name=\"eet_name\" />\\n   </entity>\\n</fetch>') ~> GetProductCategoryIdFromCRM",
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          eet_unitnumber as string,",
+						"          productid as string,",
+						"          productnumber as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n   <entity name=\"product\">\\n       <attribute name=\"productid\" />\\n       <attribute name=\"productnumber\" />\\n       <attribute name=\"eet_unitnumber\" />\\n       <filter type=\"and\">\\n           <condition attribute=\"eet_unitnumber\" operator=\"not-null\" />\\n           <condition attribute=\"productnumber\" operator=\"not-null\" />\\n       </filter>\\n   </entity>\\n</fetch>\\n') ~> GetproductIDfromProduct",
+						"GetUnitNumber, GetProductCategoryIdFromCRM lookup(trim(toString(GetUnitNumber@eet_name)) == trim(GetProductCategoryIdFromCRM@eet_name),",
+						"     multiple: true,",
+						"     broadcast: 'auto',",
+						"     pickup: 'any')~> lookup1",
+						"lookup2 alterRow(upsertIf(true())) ~> AlterRow1",
+						"filter1 derive({eet_productcategoryid@odata.bind} = \"/eet_productcategories(\" + eet_productcategoryid + \")\") ~> derivedColumn1",
+						"lookup1, GetproductIDfromProduct lookup(trim(UnitNumber) == trim(eet_unitnumber),",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> lookup2",
+						"AlterRow1 filter(isNull(productnumber) == false()) ~> filter1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     alternateKeyName: 'crdb8_productid',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          {eet_productcategoryid@odata.bind},",
+						"          productnumber",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Equip_Manufacturer_DEV')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DS_ID_FabricLakehouse",
+								"type": "DatasetReference"
+							},
+							"name": "GetUnitNumber"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_iddev_dynamicscrm",
+								"type": "DatasetReference"
+							},
+							"name": "CrmProduct"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_iddev_dynamicscrm2",
+								"type": "DatasetReference"
+							},
+							"name": "CrmProductManufacturer"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_iddev_dynamicscrm2",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "join1"
+						},
+						{
+							"name": "join2"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          Unit as string,",
+						"          Manufacturer as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT DISTINCT TRIM(UnitNumber) Unit, TRIM(Manufacturer) Manufacturer FROM dimequipment WHERE trim(CompanyID)= \\'01DEP\\' AND trim(Manufacturer) <> \\'\\'',",
+						"     format: 'query',",
+						"     booleanFormat: ['true', 'false']) ~> GetUnitNumber",
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          eet_extendcompany as string,",
+						"          eet_extendkey as string,",
+						"          eet_unitnumber as string,",
+						"          productid as string,",
+						"          productnumber as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n   <entity name=\"product\">\\n       <attribute name=\"productid\" />\\n       <attribute name=\"productnumber\" />\\n       <attribute name=\"eet_unitnumber\" />\\n       <attribute name=\"eet_extendcompany\" />\\n       <attribute name=\"eet_extendkey\" />\\n       <filter type=\"and\">\\n           <condition attribute=\"eet_unitnumber\" operator=\"not-null\" />\\n           <condition attribute=\"productnumber\" operator=\"not-null\" />\\n       </filter>\\n       <filter type=\"or\">\\n        <condition attribute=\"producttypecode\" operator=\"eq\" value=\"200000\" />\\n        <condition attribute=\"producttypecode\" operator=\"eq\" value=\"200001\" />\\n      </filter>\\n\\n   </entity>\\n</fetch>') ~> CrmProduct",
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          eet_code as string,",
+						"          eet_manufacturerid as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n   <entity name=\"eet_manufacturer\">\\n       <attribute name=\"eet_manufacturerid\" />\\n       <attribute name=\"eet_code\" />\\n   </entity>\\n</fetch>') ~> CrmProductManufacturer",
+						"join2 alterRow(upsertIf(true())) ~> AlterRow1",
+						"AlterRow1 derive({eet_productcategoryid@odata.bind} = \"/eet_manufacturers(\" + eet_manufacturerid + \")\") ~> derivedColumn1",
+						"GetUnitNumber, CrmProductManufacturer join(Manufacturer == eet_code,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join1, CrmProduct join(Unit == eet_unitnumber,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join2",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     alternateKeyName: 'eet_product_key',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          {eet_productcategoryid@odata.bind},",
+						"          productnumber,",
+						"          eet_extendcompany,",
+						"          eet_extendkey",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Equip_Parent')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "AzureSqlTable2",
+								"type": "DatasetReference"
+							},
+							"name": "GetUnitNumber"
+						},
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity_Lookup1",
+								"type": "DatasetReference"
+							},
+							"name": "GetproductIDfromProduct"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "lookup1"
+						},
+						{
+							"name": "filter1"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     Token as string",
+						"}",
+						"source(output(",
+						"          eet_unitnumber as string,",
+						"          ParentUnitNumber as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     procedureName: 'EquipmentParent',",
+						"     schemaName: 'depapi',",
+						"     resultSet: true,",
+						"     format: 'procedure',",
+						"     booleanFormat: ['true', 'false']) ~> GetUnitNumber",
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          eet_unitnumber as string,",
+						"          productid as string,",
+						"          productnumber as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n   <entity name=\"product\">\\n       <attribute name=\"productid\" />\\n       <attribute name=\"productnumber\" />\\n       <attribute name=\"name\" alias=\"productname\" />\\n       <attribute name=\"eet_unitnumber\" />\\n       <filter type=\"and\">\\n           <condition attribute=\"eet_unitnumber\" operator=\"eq\" value=\"469038\" />\\n           <condition attribute=\"eet_unitnumber\" operator=\"not-null\" />\\n           <condition attribute=\"productnumber\" operator=\"not-null\" />\\n       </filter>\\n   </entity>\\n</fetch>\\n') ~> GetproductIDfromProduct",
+						"lookup1 alterRow(upsertIf(true())) ~> AlterRow1",
+						"filter1 derive({parentproductid@odata.bind} = \"/products(\" + productid + \")\") ~> derivedColumn1",
+						"GetUnitNumber, GetproductIDfromProduct lookup(trim(GetUnitNumber@eet_unitnumber) == trim(GetproductIDfromProduct@eet_unitnumber),",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> lookup1",
+						"AlterRow1 filter(isNull(productnumber) == false()) ~> filter1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     alternateKeyName: 'crdb8_productid',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          {parentproductid@odata.bind},",
+						"          productnumber",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Equip_ProductCategory')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "AzureSqlTable2",
+								"type": "DatasetReference"
+							},
+							"name": "GetUnitNumber"
+						},
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity_Lookup",
+								"type": "DatasetReference"
+							},
+							"name": "GetProductCategoryIdFromCRM"
+						},
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity_Lookup1",
+								"type": "DatasetReference"
+							},
+							"name": "GetproductIDfromProduct"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "lookup1"
+						},
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "lookup2"
+						},
+						{
+							"name": "filter1"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     Token as string",
+						"}",
+						"source(output(",
+						"          UnitNumber as string,",
+						"          eet_name as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     procedureName: 'EquipmentProductCategory',",
+						"     schemaName: 'depapi',",
+						"     resultSet: true,",
+						"     format: 'procedure',",
+						"     booleanFormat: ['true', 'false']) ~> GetUnitNumber",
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          eet_name as string,",
+						"          eet_productcategoryid as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n   <entity name=\"eet_productcategory\">\\n       <attribute name=\"eet_productcategoryid\" />\\n       <attribute name=\"eet_name\" />\\n   </entity>\\n</fetch>') ~> GetProductCategoryIdFromCRM",
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          eet_unitnumber as string,",
+						"          productid as string,",
+						"          productnumber as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n   <entity name=\"product\">\\n       <attribute name=\"productid\" />\\n       <attribute name=\"productnumber\" />\\n       <attribute name=\"eet_unitnumber\" />\\n       <filter type=\"and\">\\n           <condition attribute=\"eet_unitnumber\" operator=\"not-null\" />\\n           <condition attribute=\"productnumber\" operator=\"not-null\" />\\n       </filter>\\n   </entity>\\n</fetch>\\n') ~> GetproductIDfromProduct",
+						"GetUnitNumber, GetProductCategoryIdFromCRM lookup(trim(toString(GetUnitNumber@eet_name)) == trim(GetProductCategoryIdFromCRM@eet_name),",
+						"     multiple: true,",
+						"     broadcast: 'auto',",
+						"     pickup: 'any')~> lookup1",
+						"lookup2 alterRow(upsertIf(true())) ~> AlterRow1",
+						"filter1 derive({eet_productcategoryid@odata.bind} = \"/eet_productcategories(\" + eet_productcategoryid + \")\") ~> derivedColumn1",
+						"lookup1, GetproductIDfromProduct lookup(trim(UnitNumber) == trim(eet_unitnumber),",
+						"     multiple: false,",
+						"     pickup: 'any',",
+						"     broadcast: 'auto')~> lookup2",
+						"AlterRow1 filter(isNull(productnumber) == false()) ~> filter1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     alternateKeyName: 'crdb8_productid',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          {eet_productcategoryid@odata.bind},",
+						"          productnumber",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Equip_ProductCategory_DEV')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DS_ID_FabricLakehouse",
+								"type": "DatasetReference"
+							},
+							"name": "GetUnitNumber"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_iddev_dynamicscrm",
+								"type": "DatasetReference"
+							},
+							"name": "GetProductCategoryIdFromCRM"
+						},
+						{
+							"dataset": {
+								"referenceName": "ds_iddev_dynamicscrm2",
+								"type": "DatasetReference"
+							},
+							"name": "GetproductIDfromProduct"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "join1"
+						},
+						{
+							"name": "join2"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          Unit as string,",
+						"          ProductCategory as string,",
+						"          CompanyID as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: 'SELECT DISTINCT TRIM(UnitNumber) Unit, ProductCategory, CompanyID FROM dimequipment WHERE ProductCategoryName IS NOT NULL AND ProductCategory IS NOT NULL AND TRIM(ProductCategory) <> \\'\\' AND CompanyID = \\'01DEP\\' ',",
+						"     format: 'query',",
+						"     booleanFormat: ['true', 'false']) ~> GetUnitNumber",
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          eet_name as string,",
+						"          eet_productcategoryid as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n   <entity name=\"eet_productcategory\">\\n       <attribute name=\"eet_productcategoryid\" />\\n       <attribute name=\"eet_name\" />\\n   </entity>\\n</fetch>') ~> GetProductCategoryIdFromCRM",
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          eet_extendcompany as string,",
+						"          eet_extendkey as string,",
+						"          eet_unitnumber as string,",
+						"          productid as string,",
+						"          productnumber as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n  <entity name=\"product\">\\n    <attribute name=\"productid\" />\\n    <attribute name=\"productnumber\" />\\n    <attribute name=\"eet_unitnumber\" />\\n    <attribute name=\"eet_extendcompany\" />\\n    <attribute name=\"eet_extendkey\" />\\n\\n    <filter type=\"and\">\\n      <condition attribute=\"eet_unitnumber\" operator=\"not-null\" />\\n      <condition attribute=\"productnumber\" operator=\"not-null\" />\\n\\n      <filter type=\"or\">\\n        <condition attribute=\"producttypecode\" operator=\"eq\" value=\"200000\" />\\n        <condition attribute=\"producttypecode\" operator=\"eq\" value=\"200001\" />\\n      </filter>\\n\\n    </filter>\\n  </entity>\\n</fetch>\\n') ~> GetproductIDfromProduct",
+						"join2 alterRow(upsertIf(true())) ~> AlterRow1",
+						"AlterRow1 derive({eet_productcategoryid@odata.bind} = \"/eet_productcategories(\" + eet_productcategoryid + \")\") ~> derivedColumn1",
+						"GetUnitNumber, GetProductCategoryIdFromCRM join(ProductCategory == eet_name,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"join1, GetproductIDfromProduct join(Unit == eet_unitnumber,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join2",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     alternateKeyName: 'crdb8_productid',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          {eet_productcategoryid@odata.bind},",
+						"          productnumber,",
+						"          eet_extendcompany,",
+						"          eet_extendkey",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_UpdateAccountNumber')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity",
+								"type": "DatasetReference"
+							},
+							"name": "GetProspectAccountsFromCRM"
+						},
+						{
+							"dataset": {
+								"referenceName": "DS_ID_FabricLakehouse",
+								"type": "DatasetReference"
+							},
+							"name": "GetAccountNumbersFromBI"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DS_ID_DynamicsCRM",
+								"type": "DatasetReference"
+							},
+							"name": "UpdateAccountNumber"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "join1"
+						},
+						{
+							"name": "derivedColumn1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          accountid as string,",
+						"          eet_accounttype as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n  <entity name=\"account\">\\n    <attribute name=\"accountid\" />\\n    <attribute name=\"accountnumber\" />\\n    <attribute name=\"eet_accounttype\" />\\n    <attribute name=\"eet_syncwithextend\" />\\n\\n    <filter type=\"and\">\\n      <condition attribute=\"accountnumber\" operator=\"null\" />\\n       <condition attribute=\"eet_accounttype\" operator=\"eq\" value=\"276040004\" />\\n    </filter>\\n  </entity>\\n</fetch>') ~> GetProspectAccountsFromCRM",
+						"source(output(",
+						"          ErpCrmID as string,",
+						"          accountnumber as string,",
+						"          eet_accounttype as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: (\"SELECT GK.ErpCrmID, GK.ProcessedID AS accountnumber, 276040000 AS eet_accounttype FROM dimcustomer C INNER JOIN crmgatekeeper GK ON C.CustomerCode  = GK.ProcessedID AND C.CompanyNumber = GK.CompanyID AND C.DivisionID = GK.DivisionID WHERE GK.EntryType = 'CUSTOMER'\"),",
+						"     format: 'query') ~> GetAccountNumbersFromBI",
+						"join1 alterRow(updateIf(true())) ~> AlterRow1",
+						"GetProspectAccountsFromCRM, GetAccountNumbersFromBI join(accountid == ErpCrmID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"AlterRow1 derive(eet_syncwithextend = false()) ~> derivedColumn1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:true,",
+						"     upsertable:false,",
+						"     mapColumn(",
+						"          accountid,",
+						"          accountnumber,",
+						"          eet_accounttype = GetAccountNumbersFromBI@eet_accounttype,",
+						"          eet_syncwithextend",
+						"     )) ~> UpdateAccountNumber"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_UpdateAccountNumber_ID_DEMO')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "ID_DEMO"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_id_demo_dynamicscrm",
+								"type": "DatasetReference"
+							},
+							"name": "GetProspectAccountsFromCRM"
+						},
+						{
+							"dataset": {
+								"referenceName": "LS_ID_DEMO_FabricLakehouse",
+								"type": "DatasetReference"
+							},
+							"name": "GetAccountNumbersFromBI"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_id_demo_dynamicscrm",
+								"type": "DatasetReference"
+							},
+							"name": "UpdateAccountNumber"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "join1"
+						},
+						{
+							"name": "derivedColumn1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          accountid as string,",
+						"          eet_accounttype as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n  <entity name=\"account\">\\n    <attribute name=\"accountid\" />\\n    <attribute name=\"accountnumber\" />\\n    <attribute name=\"eet_accounttype\" />\\n    <attribute name=\"eet_syncwithextend\" />\\n\\n    <filter type=\"and\">\\n      <condition attribute=\"accountnumber\" operator=\"null\" />\\n       <condition attribute=\"eet_accounttype\" operator=\"eq\" value=\"276040004\" />\\n    </filter>\\n  </entity>\\n</fetch>') ~> GetProspectAccountsFromCRM",
+						"source(output(",
+						"          ErpCrmID as string,",
+						"          accountnumber as string,",
+						"          eet_accounttype as integer",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: (\"SELECT GK.ErpCrmID, GK.ProcessedID AS accountnumber, 276040000 AS eet_accounttype FROM dimcustomer C INNER JOIN crmgatekeeper GK ON C.CustomerCode  = GK.ProcessedID AND C.CompanyNumber = GK.CompanyID AND C.DivisionID = GK.DivisionID WHERE GK.EntryType = 'CUSTOMER'\"),",
+						"     format: 'query') ~> GetAccountNumbersFromBI",
+						"join1 alterRow(updateIf(true())) ~> AlterRow1",
+						"GetProspectAccountsFromCRM, GetAccountNumbersFromBI join(accountid == ErpCrmID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"AlterRow1 derive(eet_syncwithextend = false()) ~> derivedColumn1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:true,",
+						"     upsertable:false,",
+						"     alternateKeyName: 'eet_account_key',",
+						"     mapColumn(",
+						"          accountid,",
+						"          accountnumber,",
+						"          eet_accounttype = GetAccountNumbersFromBI@eet_accounttype,",
+						"          eet_syncwithextend",
+						"     )) ~> UpdateAccountNumber"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_UpdateContactNumber')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity",
+								"type": "DatasetReference"
+							},
+							"name": "GetContactsFromCRM"
+						},
+						{
+							"dataset": {
+								"referenceName": "DS_ID_FabricLakehouse",
+								"type": "DatasetReference"
+							},
+							"name": "GetContactsFromBI"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DS_ID_DynamicsCRM",
+								"type": "DatasetReference"
+							},
+							"name": "UpdateContactNumber"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "InnerJoin"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          contactid as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n  <entity name=\"contact\">\\n    <attribute name=\"eet_contactcode\" />\\n    <filter type=\"and\">\\n      <condition attribute=\"eet_contactcode\" operator=\"null\" />\\n    </filter>\\n  </entity>\\n</fetch>\\n') ~> GetContactsFromCRM",
+						"source(output(",
+						"          ErpCrmID as string,",
+						"          ContactCode as string,",
+						"          eet_extendkey as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: (\"SELECT ErpCrmID, concat(CustomerCode, '-' , ContactCode) AS ContactCode, concat(trim(CustomerCode), '-', trim(ContactCode)) AS eet_extendkey FROM dimcontactbybusinesspartner C INNER JOIN crmgatekeeper GK ON concat(CustomerCode, '-' , ContactCode) = GK.ProcessedID AND C.CompanyID = GK.CompanyID AND C.DivisionID = GK.DivisionID  WHERE EntryType = 'CONTACT'\"),",
+						"     format: 'query') ~> GetContactsFromBI",
+						"InnerJoin alterRow(updateIf(true())) ~> AlterRow1",
+						"GetContactsFromCRM, GetContactsFromBI join(contactid == ErpCrmID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> InnerJoin",
+						"AlterRow1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:true,",
+						"     upsertable:false,",
+						"     alternateKeyName: 'crdb8_extendkey',",
+						"     mapColumn(",
+						"          contactid,",
+						"          eet_contactcode = ContactCode,",
+						"          eet_extendkey",
+						"     )) ~> UpdateContactNumber"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_UpdateContactNumber_ID_DEMO')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "ID_DEMO"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_id_demo_dynamicscrm",
+								"type": "DatasetReference"
+							},
+							"name": "GetContactsFromCRM"
+						},
+						{
+							"dataset": {
+								"referenceName": "LS_ID_DEMO_FabricLakehouse",
+								"type": "DatasetReference"
+							},
+							"name": "GetContactsFromBI"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_id_demo_dynamicscrm",
+								"type": "DatasetReference"
+							},
+							"name": "UpdateContactNumber"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "InnerJoin"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          contactid as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n  <entity name=\"contact\">\\n    <attribute name=\"eet_contactcode\" />\\n    <filter type=\"and\">\\n      <condition attribute=\"eet_contactcode\" operator=\"null\" />\\n    </filter>\\n  </entity>\\n</fetch>\\n') ~> GetContactsFromCRM",
+						"source(output(",
+						"          ErpCrmID as string,",
+						"          ContactCode as string,",
+						"          eet_extendkey as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: (\"SELECT ErpCrmID, concat(CustomerCode, '-' , ContactCode) AS ContactCode, concat(trim(CustomerCode), '-', trim(ContactCode)) AS eet_extendkey FROM dimcontactbybusinesspartner C INNER JOIN crmgatekeeper GK ON concat(CustomerCode, '-' , ContactCode) = GK.ProcessedID AND C.CompanyID = GK.CompanyID AND C.DivisionID = GK.DivisionID  WHERE EntryType = 'CONTACT'\"),",
+						"     format: 'query') ~> GetContactsFromBI",
+						"InnerJoin alterRow(updateIf(true())) ~> AlterRow1",
+						"GetContactsFromCRM, GetContactsFromBI join(contactid == ErpCrmID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> InnerJoin",
+						"AlterRow1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:true,",
+						"     upsertable:false,",
+						"     alternateKeyName: 'eet_contacts_key',",
+						"     mapColumn(",
+						"          contactid,",
+						"          eet_contactcode = ContactCode,",
+						"          eet_extendkey",
+						"     )) ~> UpdateContactNumber"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_UpdateOrderNumber')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity",
+								"type": "DatasetReference"
+							},
+							"name": "GetQuoteIDsFromCRM"
+						},
+						{
+							"dataset": {
+								"referenceName": "DS_ID_FabricLakehouse",
+								"type": "DatasetReference"
+							},
+							"name": "GetOrderNumbersFromBI"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DS_ID_DynamicsCRM",
+								"type": "DatasetReference"
+							},
+							"name": "UpdateOrderNumber"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "join1"
+						},
+						{
+							"name": "derivedColumn1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          eet_quote as string,",
+						"          eet_syncstatusid as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n  <entity name=\"eet_syncstatus\">\\n    <attribute name=\"eet_quote\" />\\n    <attribute name=\"eet_ordernumber\" />\\n    <filter type=\"or\">\\n      <condition attribute=\"eet_ordernumber\" operator=\"null\" />\\n      <condition attribute=\"eet_ordernumber\" operator=\"eq\" value=\"\" />\\n    </filter>\\n  </entity>\\n</fetch>\\n\\n') ~> GetQuoteIDsFromCRM",
+						"source(output(",
+						"          ErpCrmID as string,",
+						"          OrderNo as string,",
+						"          OrderDate as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: (\"SELECT ErpCrmID, OrderNo, EntryDate OrderDate FROM dimequipmentorder C INNER JOIN crmgatekeeper GK ON C.OrderNo = GK.ProcessedID AND C.CompanyNumber = GK.CompanyID AND C.Division = GK.DivisionID\"),",
+						"     format: 'query') ~> GetOrderNumbersFromBI",
+						"join1 alterRow(updateIf(true())) ~> AlterRow1",
+						"GetQuoteIDsFromCRM, GetOrderNumbersFromBI join(eet_quote == ErpCrmID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"AlterRow1 derive(eet_syncstage = 3) ~> derivedColumn1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:true,",
+						"     upsertable:false,",
+						"     alternateKeyName: 'crdb8_quote',",
+						"     mapColumn(",
+						"          eet_quote,",
+						"          eet_ordernumber = OrderNo,",
+						"          eet_ordercreatedon = OrderDate,",
+						"          eet_syncstage",
+						"     )) ~> UpdateOrderNumber"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_UpdateOrderNumber_ID_DEMO')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"folder": {
+					"name": "ID_DEMO"
+				},
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "ds_id_demo_dynamicscrm",
+								"type": "DatasetReference"
+							},
+							"name": "GetQuoteIDsFromCRM"
+						},
+						{
+							"dataset": {
+								"referenceName": "LS_ID_DEMO_FabricLakehouse",
+								"type": "DatasetReference"
+							},
+							"name": "GetOrderNumbersFromBI"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "ds_id_demo_dynamicscrm",
+								"type": "DatasetReference"
+							},
+							"name": "UpdateOrderNumber"
+						}
+					],
+					"transformations": [
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "join1"
+						},
+						{
+							"name": "derivedColumn1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          eet_quote as string,",
+						"          eet_syncstatusid as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n  <entity name=\"eet_syncstatus\">\\n    <attribute name=\"eet_quote\" />\\n    <attribute name=\"eet_ordernumber\" />\\n    <filter type=\"or\">\\n      <condition attribute=\"eet_ordernumber\" operator=\"null\" />\\n      <condition attribute=\"eet_ordernumber\" operator=\"eq\" value=\"\" />\\n    </filter>\\n  </entity>\\n</fetch>\\n\\n') ~> GetQuoteIDsFromCRM",
+						"source(output(",
+						"          ErpCrmID as string,",
+						"          OrderNo as string,",
+						"          OrderDate as date",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     isolationLevel: 'READ_UNCOMMITTED',",
+						"     query: (\"SELECT ErpCrmID, OrderNo, EntryDate OrderDate FROM dimequipmentorder C INNER JOIN crmgatekeeper GK ON C.OrderNo = GK.ProcessedID AND C.CompanyNumber = GK.CompanyID AND C.Division = GK.DivisionID\"),",
+						"     format: 'query') ~> GetOrderNumbersFromBI",
+						"join1 alterRow(updateIf(true())) ~> AlterRow1",
+						"GetQuoteIDsFromCRM, GetOrderNumbersFromBI join(eet_quote == ErpCrmID,",
+						"     joinType:'inner',",
+						"     matchType:'exact',",
+						"     ignoreSpaces: false,",
+						"     broadcast: 'auto')~> join1",
+						"AlterRow1 derive(eet_syncstage = 3) ~> derivedColumn1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:true,",
+						"     upsertable:false,",
+						"     alternateKeyName: 'eet_syncstatus_key',",
+						"     mapColumn(",
+						"          eet_quote,",
+						"          eet_ordernumber = OrderNo,",
+						"          eet_ordercreatedon = OrderDate,",
+						"          eet_syncstage",
+						"     )) ~> UpdateOrderNumber"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/df_Address_new')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity",
+								"type": "DatasetReference"
+							},
+							"name": "source1"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "alterRow1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          customeraddressid as string,",
+						"          eet_deliveryaddress as string,",
+						"          eet_extendcompany as string,",
+						"          eet_invoiceaddress as string,",
+						"          line1 as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n   <entity name=\"customeraddress\">\\n        <attribute name=\"customeraddressid\" />       \\n        <attribute name=\"eet_extendcompany\" />\\n        <attribute name=\"eet_deliveryaddress\" />\\n        <attribute name=\"eet_invoiceaddress\" />\\n        <attribute name=\"line1\" />  \\n        <filter type=\"and\">\\n<condition attribute=\"eet_extendcompany\" operator=\"not-null\" />\\n            <condition attribute=\"line1\" operator=\"not-null\" />\\n        </filter>\\n   </entity>\\n</fetch>\\n') ~> source1",
+						"source1 derive(invoiceaddress = iif(eet_invoiceaddress == \"false\", \"true\", eet_invoiceaddress),",
+						"          deliveryaddress = iif(eet_deliveryaddress == \"false\", \"true\", eet_deliveryaddress),",
+						"          extendcompany = iif(isNull(eet_extendcompany), \"100\", eet_extendcompany)) ~> derivedColumn1",
+						"derivedColumn1 alterRow(updateIf(isNull(eet_extendcompany))) ~> alterRow1",
+						"alterRow1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:true,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:false,",
+						"     alternateKeyName: 'crdb8_addressid',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Address')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Data flow1",
+						"type": "ExecuteDataFlow",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DF_Address",
+								"type": "DataFlowReference",
+								"parameters": {
+									"Token": "'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IklEMUdXRDdEQTJNMTREMzZBQiRZVUkyMzREOVVKMjM0NUYkS0owOSJ9.eyJqdGkiOiI5ZjZlNWE4MS05NzU2LTRmYzYtOWVkNy02MjljNDVjZDRiODMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IklEIiwiZXhwIjoxNzU0ODQ4NzM0LCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjU2ODY2LyIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NTY4NjYvIn0.RkZejJyCiUt0lPXff4zUW4XmRZlSnrmqVr1l9-XH2IE'"
+								},
+								"datasetParameters": {
+									"GetAddressFromAPI": {
+										"Name": "GetAddress"
+									},
+									"GetAccountIDFromCRM": {
+										"EntityName": "account"
+									},
+									"sink1": {
+										"EntityName": "customeraddress"
+									}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Data Pipelines"
+				},
+				"annotations": [],
+				"lastPublishTime": "2025-08-10T16:09:43Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/CRM_Pipeline_Test')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Get Bearer Token",
+						"type": "WebActivity",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"method": "POST",
+							"headers": {},
+							"url": "https://iddep-awfcgwgrf2bnekev.eastus2-01.azurewebsites.net/User/Authenticate",
+							"body": {
+								"tenantCode": "ID",
+								"clientId": "BIAPI-1e3a4db2cee11ed02fc22c062e30d462bf27e480",
+								"clientSecret": "ff774c817c9fc7e9b381f9bacf88a9075bbd85fertui"
+							}
+						}
+					},
+					{
+						"name": "Load Data into CRM",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Get Bearer Token",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "RestSource",
+								"httpRequestTimeout": "00:01:40",
+								"requestInterval": "00.00:00:00.010",
+								"requestMethod": "GET",
+								"additionalHeaders": {
+									"Authorization": {
+										"value": "Bearer @{activity('Get Bearer Token').output.jwtToken}",
+										"type": "Expression"
+									}
+								},
+								"paginationRules": {
+									"AbsoluteUrl.{pageNumber}": "RANGE:1::",
+									"EndCondition:$.more": "Const:false"
+								}
+							},
+							"sink": {
+								"type": "DelimitedTextSink",
+								"storeSettings": {
+									"type": "AzureBlobStorageWriteSettings"
+								},
+								"formatSettings": {
+									"type": "DelimitedTextWriteSettings",
+									"quoteAllText": true,
+									"fileExtension": ".txt"
+								}
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"path": "[['account']"
+										},
+										"sink": {
+											"name": "account",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"path": "[['customerName']"
+										},
+										"sink": {
+											"name": "customerName",
+											"type": "String"
+										}
+									}
+								],
+								"collectionReference": "$['data']"
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "Fetch_Customers_Test",
+								"type": "DatasetReference",
+								"parameters": {
+									"TenantCode": {
+										"value": "@pipeline().parameters.TenantCode",
+										"type": "Expression"
+									},
+									"CompanyId": {
+										"value": "@pipeline().parameters.CompanyId",
+										"type": "Expression"
+									},
+									"PageSize": {
+										"value": "@pipeline().parameters.PageSize",
+										"type": "Expression"
+									}
+								}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "Source_Test",
+								"type": "DatasetReference",
+								"parameters": {
+									"TenantID": "dep"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"parameters": {
+					"TenantCode": {
+						"type": "string",
+						"defaultValue": "ID"
+					},
+					"CompanyId": {
+						"type": "string",
+						"defaultValue": "01"
+					},
+					"PageNumber": {
+						"type": "string",
+						"defaultValue": "1"
+					},
+					"PageSize": {
+						"type": "string",
+						"defaultValue": "50"
+					}
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Data Pipelines"
+				},
+				"annotations": [],
+				"lastPublishTime": "2024-12-04T05:59:38Z"
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DEV CRM Data sync')]",
+			"type": "Microsoft.DataFactory/factories/pipelines",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"activities": [
+					{
+						"name": "Copy Accounts",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT                 \n\tTRIM(A.CustomerCode)\t\taccountnumber\n\t, A.CustomerName\t\t\tname\n\t, A.CustomerCity\t\t\taddress1_city\n\t, A.CustomerCounty\t\t\taddress1_county\n\t, A.CustomerCountry\t\t\taddress1_country\n\t, A.Fax\t\t\t\t\t\taddress1_fax\n\t, A.CustomerAddress1\t\taddress1_line1\n\t, A.CustomerZipCode\t\t\taddress1_postalcode\n\t, A.CustomerStateProvince\taddress1_stateorprovince\n\t, A.Telephone\t\t\t\taddress1_telephone1\n\t, A.TotalCreditLimit\t\tcreditlimit\n\t, A.[E-mail]\t\t\t\temailaddress1\n    , 100\t\t\t\t\t\teet_extendcompany \n\t, TRIM(A.CustomerCode)      eet_extendkey\n\t, CONCAT (TRIM(A.CustomerCode),'-', LEFT(CompanyNumber,2), '-',LEFT(DivisionID,2)) AS address1_name\n\t, Fax\t\t\t\t\t\tfax\n\t, CASE WHEN CustomerStatus = 'Active' THEN '0' ELSE 1 END statecode\n\t, TRY_CONVERT(date, A.[Creation_Date]) AS createdon\n\t, TRY_CONVERT(date, A.[ModificationDate]) AS modifiedon\n\t, CASE WHEN CustomerStatus = 'Active' THEN '276040000' \n            WHEN CustomerStatus = 'Prospect' THEN '276040002' \n            WHEN CustomerStatus = 'Deleted' THEN '276040001' \n        END AS eet_accounttype\n\t, 1 as address1_addresstypecode\n\t, 'true' eet_soldtorole\n\t, 'false' eet_shipto\n\t, 'true' eet_soldto\n\t, 'true' eet_invoiceto\nFROM dimcustomer A \nWHERE A.CompanyNumber ='01DEP' \nAND CustomerName NOT LIKE '%' + CHAR(26) + '%'\n--and TRY_CONVERT(date, A.[ModificationDate]) > DATEADD(DAY, -30, GETDATE()) ",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "DynamicsCrmSink",
+								"writeBatchSize": 10,
+								"writeBehavior": "upsert",
+								"ignoreNullValues": false,
+								"alternateKeyName": "eet_account_key",
+								"bypassPowerAutomateFlows": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "accountnumber",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "accountnumber",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "address1_addresstypecode",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "address1_addresstypecode",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "address1_city",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "address1_city",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "address1_country",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "address1_country",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "address1_county",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "address1_county",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "address1_fax",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "address1_fax",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "address1_line1",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "address1_line1",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "address1_postalcode",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "address1_postalcode",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "address1_stateorprovince",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "address1_stateorprovince",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "address1_telephone1",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "address1_telephone1",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "createdon",
+											"type": "DateTime",
+											"physicalType": "date"
+										},
+										"sink": {
+											"name": "createdon",
+											"type": "DateTime"
+										}
+									},
+									{
+										"source": {
+											"name": "creditlimit",
+											"type": "Decimal",
+											"physicalType": "decimal",
+											"scale": 4,
+											"precision": 20
+										},
+										"sink": {
+											"name": "creditlimit",
+											"type": "Decimal"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_accounttype",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "eet_accounttype",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_extendcompany",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "eet_extendcompany",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_extendkey",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_extendkey",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_invoiceto",
+											"type": "Boolean",
+											"physicalType": "bit"
+										},
+										"sink": {
+											"name": "eet_invoiceto",
+											"type": "Boolean"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_shipto",
+											"type": "Boolean",
+											"physicalType": "bit"
+										},
+										"sink": {
+											"name": "eet_shipto",
+											"type": "Boolean"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_soldto",
+											"type": "Boolean",
+											"physicalType": "bit"
+										},
+										"sink": {
+											"name": "eet_soldto",
+											"type": "Boolean"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_soldtorole",
+											"type": "Boolean",
+											"physicalType": "bit"
+										},
+										"sink": {
+											"name": "eet_soldtorole",
+											"type": "Boolean"
+										}
+									},
+									{
+										"source": {
+											"name": "emailaddress1",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "emailaddress1",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "fax",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "fax",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "modifiedon",
+											"type": "DateTime",
+											"physicalType": "date"
+										},
+										"sink": {
+											"name": "modifiedon",
+											"type": "DateTime"
+										}
+									},
+									{
+										"source": {
+											"name": "name",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "name",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "statecode",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "statecode",
+											"type": "Int32"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_ID_FabricLakehouse",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_iddev_dynamicscrm",
+								"type": "DatasetReference",
+								"parameters": {
+									"EntityName": "product"
+								}
+							}
+						]
+					},
+					{
+						"name": "Copy products",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Copy Accounts",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT \n\t'983a3ed3-d3d8-f011-8543-000d3a352ac1' AS eet_businessunit,\n    2 AS quantitydecimal,\n    'b2f82e2d-98ab-46b5-9577-600f4567fcb7' AS defaultuomid,\n    'fc239d37-cff7-f011-aa23-6045bd00331b' AS organizationid,\n    '7a222c89-e501-4949-a7bb-99ce64f9b6a6' AS defaultuomscheduleid,\n    'true' AS isstockitem,\n    '0' AS statecode,\n    '964cb55d-c300-f111-8406-000d3a31debd' AS pricelevelid,\n\tCONCAT(UnitNumber, '_', LEFT(CompanyID, 2)) AS productnumber,\n    CONCAT(UnitNumber, '_', LEFT(CompanyID, 2)) AS eet_derivedproductnumber,\n    TRIM(UnitNumber) AS eet_extendkey,\n    '100' AS eet_extendcompany,\n\t--1 productstructure,\n    TRIM(UnitNumber) AS eet_unitnumber,\n    Manufacturer AS eet_make,\n    TRIM(Model) AS eet_modelcode,\n    ProductCategoryName eet_quipwareproductcategory,\n    TRIM(UnitDescription) AS eet_fullname,\n    CASE WHEN Used = 'Used' THEN 'true' WHEN Used = 'New' THEN 'false' ELSE 'false' END AS eet_neworused,\n    --TRY_CONVERT(date, SalesInvoiceDate) AS eet_purchasedate,\n    ModelYear AS eet_makeyear,\n    CASE      \n        WHEN OwnershipStatus = 'Dealer Owned' THEN 10      \n        WHEN OwnershipStatus = 'Customer Stock' THEN 20      \n        ELSE NULL      \n    END AS eet_ownershipstatus,\n    CONCAT(TRIM(Model), '_', Manufacturer) AS name,\n    SerialNumber eet_serialno,\n    CASE\n        WHEN Status = 'Inventory' THEN '276040000'\n        WHEN Status = 'Presold' THEN '276040001'\n        WHEN Status = 'Rented' THEN '276040002'\n        WHEN Status = 'Sold' THEN '276040003'\n        WHEN Status = 'Invoiced' THEN '276040003'\n        WHEN Status = 'On Order' THEN '276040004'\n        WHEN Status = 'Transfer' THEN '276040006'\n        ELSE '276040000'\n    END AS EquipmentStatus,\n    CASE      \n        WHEN EquipmentType = 'Model' THEN '200000'      \n        WHEN EquipmentType = 'Attachment' THEN '200001'      \n        WHEN EquipmentType = 'Option' THEN '200002'      \n        ELSE '200000'      \n    END AS producttypecode,\n    LEFT(ManufacturerName, 10) AS eet_manufacturer,\n    TRIM(Model) AS ModelName,\n    CASE\n        WHEN Status = 'On Order' THEN 1\n        WHEN PhysicalStatus = 'Rental' THEN 3      \n        WHEN PhysicalStatus = 'In the Branch' THEN 2      \n        WHEN PhysicalStatus = 'Demo' THEN 5      \n        WHEN PhysicalStatus = 'Loaner' THEN 6      \n        WHEN PhysicalStatus IN ('In Transit', 'Being Transferred') THEN 7\n        WHEN PhysicalStatus = 'Equipment Sale' THEN 4 \n        --WHEN PhysicalStatus = 'Service' THEN 14      \n        --WHEN PhysicalStatus = 'Held' THEN 15        \n    END AS eet_physicalstatus,\n    EquipmentSupplier AS BuyFromBP,\n\tTRY_CONVERT(DATE, CreatedDate) AS createdon,\n\tTRY_CONVERT(DATE, ModifiedDate) AS modifiedon,\n    --TRY_CONVERT(date, [Actual Receipt Date]) AS ActualReceiptDate,\n    OriginalSalesPrice AS SalesPrice,\n    --[Sales Agreement Customer] AS SoldToCustomer,\n    Meter1Reading AS Meter1Hours,\n    MinimumSellingPrice,\n    Book currentcost,\n    ParentUnitNumber eet_parentunit,\n    CONCAT(UnitNumber, '_', LEFT(CompanyID, 2)) AS ExternalID,\n    Price price,\n    UnitDescription AS description,\n    --LEFT(CompanyID, 2) AS Company,\n    --LEFT(DivisionID, 2) AS Division,\n    Cost AS standardcost\nFROM      \n    dimequipment E  \nWHERE       \n    CompanyID = '01DEP'\n\tAND EquipmentType = 'Model' AND Model <> '' AND SourceSystem= 'Intellidealer';",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "DynamicsCrmSink",
+								"writeBatchSize": 10,
+								"writeBehavior": "upsert",
+								"ignoreNullValues": false,
+								"alternateKeyName": "eet_product_key",
+								"bypassPowerAutomateFlows": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "createdon",
+											"type": "DateTime",
+											"physicalType": "date"
+										},
+										"sink": {
+											"name": "createdon",
+											"type": "DateTime"
+										}
+									},
+									{
+										"source": {
+											"name": "currentcost",
+											"type": "Decimal",
+											"physicalType": "decimal",
+											"scale": 4,
+											"precision": 20
+										},
+										"sink": {
+											"name": "currentcost",
+											"type": "Decimal"
+										}
+									},
+									{
+										"source": {
+											"name": "defaultuomid",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "defaultuomid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "defaultuomscheduleid",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "defaultuomscheduleid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "description",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "description",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_businessunit",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "eet_businessunit",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_extendcompany",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "eet_extendcompany",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_extendkey",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_extendkey",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_fullname",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_fullname",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_make",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_make",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_modelcode",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_modelcode",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_makeyear",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "eet_makeyear",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_manufacturer",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_manufacturer",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_neworused",
+											"type": "Boolean",
+											"physicalType": "bit"
+										},
+										"sink": {
+											"name": "eet_neworused",
+											"type": "Boolean"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_ownershipstatus",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "eet_ownershipstatus",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "EquipmentStatus",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "eet_equipmentstatus",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_physicalstatus",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "eet_physicalstatus",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_serialno",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "eet_serialno",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_quipwareproductcategory",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_quipwareproductcategory",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_unitnumber",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "eet_unitnumber",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "isstockitem",
+											"type": "Boolean",
+											"physicalType": "bit"
+										},
+										"sink": {
+											"name": "isstockitem",
+											"type": "Boolean"
+										}
+									},
+									{
+										"source": {
+											"name": "modifiedon",
+											"type": "DateTime",
+											"physicalType": "date"
+										},
+										"sink": {
+											"name": "modifiedon",
+											"type": "DateTime"
+										}
+									},
+									{
+										"source": {
+											"name": "name",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "name",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "organizationid",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "organizationid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "price",
+											"type": "Decimal",
+											"physicalType": "decimal",
+											"scale": 4,
+											"precision": 20
+										},
+										"sink": {
+											"name": "price",
+											"type": "Decimal"
+										}
+									},
+									{
+										"source": {
+											"name": "pricelevelid",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "pricelevelid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_derivedproductnumber",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_derivedproductnumber",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "productnumber",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "productnumber",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "producttypecode",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "producttypecode",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "quantitydecimal",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "quantitydecimal",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "standardcost",
+											"type": "Decimal",
+											"physicalType": "decimal",
+											"scale": 4,
+											"precision": 20
+										},
+										"sink": {
+											"name": "standardcost",
+											"type": "Decimal"
+										}
+									},
+									{
+										"source": {
+											"name": "statecode",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "statecode",
+											"type": "Int32"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_ID_FabricLakehouse",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_iddev_dynamicscrm",
+								"type": "DatasetReference",
+								"parameters": {
+									"EntityName": "product"
+								}
+							}
+						]
+					},
+					{
+						"name": "product_Models",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "Copy products",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "WITH RankedModels AS\n(\n    SELECT *,\n           ROW_NUMBER() OVER (\n               PARTITION BY TRIM(Model)\n               ORDER BY ModelYear DESC\n           ) AS rn\n    FROM dimequipment\n    WHERE CompanyID = '01DEP'\n      AND TRIM(Model) <> ''\n      --AND EquipmentType = 'Model'\n)\nSELECT \n    '983a3ed3-d3d8-f011-8543-000d3a352ac1' AS eet_businessunit,\n    2 AS quantitydecimal,\n    'b2f82e2d-98ab-46b5-9577-600f4567fcb7' AS defaultuomid,\n    'fc239d37-cff7-f011-aa23-6045bd00331b' AS organizationid,\n    '7a222c89-e501-4949-a7bb-99ce64f9b6a6' AS defaultuomscheduleid,\n    'false' AS isstockitem,\n    '0' AS statecode,\n    '964cb55d-c300-f111-8406-000d3a31debd' AS pricelevelid,\n    CONCAT(TRIM(Model), '_', LEFT(CompanyID, 2)) AS productnumber,\n    CONCAT(TRIM(Model), '_', LEFT(CompanyID, 2)) AS eet_derivedproductnumber,\n    TRIM(Model) AS eet_extendkey,\n    1 AS productstructure,\n    TRIM(Model) AS eet_modelcode,\n    TRIM(UnitDescription) AS eet_fullname,\n    '200000' AS producttypecode,\n    '100' AS eet_extendcompany,\n    TRIM(Model) AS description,\n\tManufacturer AS eet_make,\n    ModelYear AS eet_makeyear,\n\tCONCAT(TRIM(Model), '_', Manufacturer) AS name,\n    LEFT(ManufacturerName, 10) AS eet_manufacturer,\n    LEFT(CompanyID, 2) AS Company,\n    SUBSTRING(DivisionID, 4, 2) AS Division\nFROM RankedModels\nWHERE rn = 1;",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "DynamicsCrmSink",
+								"writeBatchSize": 10,
+								"writeBehavior": "upsert",
+								"ignoreNullValues": false,
+								"alternateKeyName": "eet_product_key",
+								"bypassPowerAutomateFlows": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "defaultuomid",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "defaultuomid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "defaultuomscheduleid",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "defaultuomscheduleid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "description",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "description",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_businessunit",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "eet_businessunit",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_extendcompany",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "eet_extendcompany",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_make",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_make",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_fullname",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_fullname",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_modelcode",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_modelcode",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_makeyear",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "eet_makeyear",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_manufacturer",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_manufacturer",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "isstockitem",
+											"type": "Boolean",
+											"physicalType": "bit"
+										},
+										"sink": {
+											"name": "isstockitem",
+											"type": "Boolean"
+										}
+									},
+									{
+										"source": {
+											"name": "name",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "name",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "organizationid",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "organizationid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_derivedproductnumber",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_derivedproductnumber",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "productnumber",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "productnumber",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "productstructure",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "productstructure",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "producttypecode",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "producttypecode",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "quantitydecimal",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "quantitydecimal",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "statecode",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "statecode",
+											"type": "Int32"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_ID_FabricLakehouse",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_iddev_dynamicscrm",
+								"type": "DatasetReference",
+								"parameters": {
+									"EntityName": "product"
+								}
+							}
+						]
+					},
+					{
+						"name": "product_Attachment",
+						"type": "Copy",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "product_Models",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT \n\t'983a3ed3-d3d8-f011-8543-000d3a352ac1' AS eet_businessunit,\n    2 AS quantitydecimal,\n    'b2f82e2d-98ab-46b5-9577-600f4567fcb7' AS defaultuomid,\n    'fc239d37-cff7-f011-aa23-6045bd00331b' AS organizationid,\n    '7a222c89-e501-4949-a7bb-99ce64f9b6a6' AS defaultuomscheduleid,\n    'true' AS isstockitem,\n    '0' AS statecode,\n    '964cb55d-c300-f111-8406-000d3a31debd' AS pricelevelid,\n\tCONCAT(UnitNumber, '_', LEFT(CompanyID, 2)) AS productnumber,\n    CONCAT(UnitNumber, '_', LEFT(CompanyID, 2)) AS eet_derivedproductnumber,\n    TRIM(UnitNumber) AS eet_extendkey,\n    '100' AS eet_extendcompany,\n\t--1 productstructure,\n    TRIM(UnitNumber) AS eet_unitnumber,\n    Manufacturer AS eet_make,\n    TRIM(Model) AS eet_modelcode,\n    ProductCategoryName eet_quipwareproductcategory,\n    TRIM(UnitDescription) AS eet_fullname,\n    CASE WHEN Used = 'Used' THEN 'true' WHEN Used = 'New' THEN 'false' ELSE 'false' END AS eet_neworused,\n    --TRY_CONVERT(date, SalesInvoiceDate) AS eet_purchasedate,\n    ModelYear AS eet_makeyear,\n    CASE      \n        WHEN OwnershipStatus = 'Dealer Owned' THEN 10      \n        WHEN OwnershipStatus = 'Customer Stock' THEN 20      \n        ELSE NULL      \n    END AS eet_ownershipstatus,\n    CONCAT(TRIM(Model), '_', Manufacturer) AS name,\n    SerialNumber eet_serialno,\n    CASE\n        WHEN Status = 'Inventory' THEN '276040000'\n        WHEN Status = 'Presold' THEN '276040001'\n        WHEN Status = 'Rented' THEN '276040002'\n        WHEN Status = 'Sold' THEN '276040003'\n        WHEN Status = 'Invoiced' THEN '276040003'\n        WHEN Status = 'On Order' THEN '276040004'\n        WHEN Status = 'Transfer' THEN '276040006'\n        ELSE '276040000'\n    END AS EquipmentStatus,\n    '200001' AS producttypecode,\n    LEFT(ManufacturerName, 10) AS eet_manufacturer,\n    TRIM(Model) AS ModelName,\n    CASE\n        WHEN Status = 'On Order' THEN 1\n        WHEN PhysicalStatus = 'Rental' THEN 3      \n        WHEN PhysicalStatus = 'In the Branch' THEN 2      \n        WHEN PhysicalStatus = 'Demo' THEN 5      \n        WHEN PhysicalStatus = 'Loaner' THEN 6      \n        WHEN PhysicalStatus IN ('In Transit', 'Being Transferred') THEN 7\n        WHEN PhysicalStatus = 'Equipment Sale' THEN 4 \n        --WHEN PhysicalStatus = 'Service' THEN 14      \n        --WHEN PhysicalStatus = 'Held' THEN 15        \n    END AS eet_physicalstatus,\n    EquipmentSupplier AS BuyFromBP,\n\tTRY_CONVERT(DATE, CreatedDate) AS createdon,\n\tTRY_CONVERT(DATE, ModifiedDate) AS modifiedon,\n    --TRY_CONVERT(date, [Actual Receipt Date]) AS ActualReceiptDate,\n    OriginalSalesPrice AS SalesPrice,\n    --[Sales Agreement Customer] AS SoldToCustomer,\n    Meter1Reading AS Meter1Hours,\n    MinimumSellingPrice,\n    Book currentcost,\n    ParentUnitNumber eet_parentunit,\n    CONCAT(UnitNumber, '_', LEFT(CompanyID, 2)) AS ExternalID,\n    Price price,\n    UnitDescription AS description,\n    LEFT(CompanyID, 2) AS Company,\n    LEFT(DivisionID, 2) AS Division,\n    Cost AS standardcost\nFROM      \n    dimequipment E  \nWHERE       \n    CompanyID = '01DEP'    \n\tAND EquipmentType = 'Attachment' AND ParentUnitNumber <> '';\n\n",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "DynamicsCrmSink",
+								"writeBatchSize": 10,
+								"writeBehavior": "upsert",
+								"ignoreNullValues": false,
+								"alternateKeyName": "eet_product_key",
+								"bypassPowerAutomateFlows": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "createdon",
+											"type": "DateTime",
+											"physicalType": "date"
+										},
+										"sink": {
+											"name": "createdon",
+											"type": "DateTime"
+										}
+									},
+									{
+										"source": {
+											"name": "defaultuomid",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "defaultuomid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "defaultuomscheduleid",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "defaultuomscheduleid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "description",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "description",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_businessunit",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "eet_businessunit",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_extendcompany",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "eet_extendcompany",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_fullname",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_fullname",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_make",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_make",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_modelcode",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_modelcode",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_makeyear",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "eet_makeyear",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_manufacturer",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_manufacturer",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_neworused",
+											"type": "Boolean",
+											"physicalType": "bit"
+										},
+										"sink": {
+											"name": "eet_neworused",
+											"type": "Boolean"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_ownershipstatus",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "eet_ownershipstatus",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "EquipmentStatus",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "eet_equipmentstatus",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_physicalstatus",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "eet_physicalstatus",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_unitnumber",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "eet_unitnumber",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "isstockitem",
+											"type": "Boolean",
+											"physicalType": "bit"
+										},
+										"sink": {
+											"name": "isstockitem",
+											"type": "Boolean"
+										}
+									},
+									{
+										"source": {
+											"name": "modifiedon",
+											"type": "DateTime",
+											"physicalType": "date"
+										},
+										"sink": {
+											"name": "modifiedon",
+											"type": "DateTime"
+										}
+									},
+									{
+										"source": {
+											"name": "name",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "name",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "organizationid",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "organizationid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "price",
+											"type": "Decimal",
+											"physicalType": "decimal",
+											"scale": 4,
+											"precision": 20
+										},
+										"sink": {
+											"name": "price",
+											"type": "Decimal"
+										}
+									},
+									{
+										"source": {
+											"name": "pricelevelid",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "pricelevelid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_derivedproductnumber",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_derivedproductnumber",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "productnumber",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "productnumber",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "producttypecode",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "producttypecode",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "quantitydecimal",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "quantitydecimal",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "standardcost",
+											"type": "Decimal",
+											"physicalType": "decimal",
+											"scale": 4,
+											"precision": 20
+										},
+										"sink": {
+											"name": "standardcost",
+											"type": "Decimal"
+										}
+									},
+									{
+										"source": {
+											"name": "statecode",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "statecode",
+											"type": "Int32"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_ID_FabricLakehouse",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_iddev_dynamicscrm",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						]
+					},
+					{
+						"name": "Contacts",
+						"type": "ExecuteDataFlow",
+						"state": "Inactive",
+						"onInactiveMarkAs": "Succeeded",
+						"dependsOn": [
+							{
+								"activity": "products_Options",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataflow": {
+								"referenceName": "DF_Contacts_DEV",
+								"type": "DataFlowReference",
+								"parameters": {},
+								"datasetParameters": {
+									"GetContacts": {},
+									"GetAccountID": {
+										"EntityName": "account"
+									},
+									"sink1": {
+										"EntityName": "contact"
+									}
+								}
+							},
+							"staging": {},
+							"compute": {
+								"coreCount": 8,
+								"computeType": "General"
+							},
+							"traceLevel": "Fine"
+						}
+					},
+					{
+						"name": "products_Options",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "product_Attachment",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT \n\t'983a3ed3-d3d8-f011-8543-000d3a352ac1' AS eet_businessunit,\n    2 AS quantitydecimal,\n    'b2f82e2d-98ab-46b5-9577-600f4567fcb7' AS defaultuomid,\n    'fc239d37-cff7-f011-aa23-6045bd00331b' AS organizationid,\n    '7a222c89-e501-4949-a7bb-99ce64f9b6a6' AS defaultuomscheduleid,\n    'true' AS isstockitem,\n    '0' AS statecode,\n    '964cb55d-c300-f111-8406-000d3a31debd' AS pricelevelid,\n\tCONCAT(StockNumber, '_', OptionNumber, '_', SequenceNumber, '_', LEFT(CompanyID, 2)) AS productnumber,\n    CONCAT(StockNumber, '_', OptionNumber, '_', SequenceNumber, '_', LEFT(CompanyID, 2)) AS eet_derivedproductnumber,\n    CONCAT(StockNumber, '_', OptionNumber, '_', SequenceNumber) AS eet_extendkey,\n    '100' AS eet_extendcompany,\n    TRIM(StockNumber) AS eet_unitnumber,\n    TRIM(Description) AS eet_fullname,\n    Description AS name,\n    Description AS description,\n    '200002' AS producttypecode,\n\tDateAdded AS createdon,\n\tDateModified AS modifiedon,\n    Price price,\n    --LEFT(CompanyID, 2) AS Company,\n    --LEFT(Division, 2) AS Division,\n    Cost AS standardcost,\n    Cost AS currentcost\nFROM      \n    dimoptions E  \nWHERE CompanyID = '01DEP'",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "DynamicsCrmSink",
+								"writeBatchSize": 10,
+								"writeBehavior": "upsert",
+								"ignoreNullValues": false,
+								"alternateKeyName": "eet_product_key",
+								"bypassPowerAutomateFlows": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "currentcost",
+											"type": "Decimal",
+											"physicalType": "decimal",
+											"scale": 4,
+											"precision": 20
+										},
+										"sink": {
+											"name": "currentcost",
+											"type": "Decimal"
+										}
+									},
+									{
+										"source": {
+											"name": "defaultuomid",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "defaultuomid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "defaultuomscheduleid",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "defaultuomscheduleid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "description",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "description",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_businessunit",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "eet_businessunit",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_extendcompany",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "eet_extendcompany",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_derivedproductnumber",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_derivedproductnumber",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_extendkey",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_extendkey",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_fullname",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_fullname",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_unitnumber",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "eet_unitnumber",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "isstockitem",
+											"type": "Boolean",
+											"physicalType": "bit"
+										},
+										"sink": {
+											"name": "isstockitem",
+											"type": "Boolean"
+										}
+									},
+									{
+										"source": {
+											"name": "name",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "name",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "organizationid",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "organizationid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "price",
+											"type": "Decimal",
+											"physicalType": "decimal",
+											"scale": 4,
+											"precision": 20
+										},
+										"sink": {
+											"name": "price",
+											"type": "Decimal"
+										}
+									},
+									{
+										"source": {
+											"name": "pricelevelid",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "pricelevelid",
+											"type": "Guid"
+										}
+									},
+									{
+										"source": {
+											"name": "productnumber",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "productnumber",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "producttypecode",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "producttypecode",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "quantitydecimal",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "quantitydecimal",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "standardcost",
+											"type": "Decimal",
+											"physicalType": "decimal",
+											"scale": 4,
+											"precision": 20
+										},
+										"sink": {
+											"name": "standardcost",
+											"type": "Decimal"
+										}
+									},
+									{
+										"source": {
+											"name": "statecode",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "statecode",
+											"type": "Int32"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_ID_FabricLakehouse",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_iddev_dynamicscrm",
+								"type": "DatasetReference",
+								"parameters": {
+									"EntityName": "product"
+								}
+							}
+						]
+					},
+					{
+						"name": "Equipment Manufacturer",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Contacts",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT eet_code,\n       eet_name,\n       eet_erpcompany,\n       statecode\nFROM (\n    SELECT \n        TRIM(DimID) AS eet_code,\n        TRIM(DimDescription) AS eet_name,\n        100 AS eet_erpcompany,\n        0 AS statecode,\n        ROW_NUMBER() OVER (PARTITION BY TRIM(DimID), 101 ORDER BY DimID) AS rn\n    FROM dimfin3\n    WHERE CompanyNumber = '01DEP'\n    AND DimDescription IS NOT NULL\n) x\nWHERE rn = 1;\n\n",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "DynamicsCrmSink",
+								"writeBatchSize": 10,
+								"writeBehavior": "upsert",
+								"ignoreNullValues": false,
+								"alternateKeyName": "eet_manufacturer_key",
+								"bypassPowerAutomateFlows": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "eet_code",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "eet_code",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_erpcompany",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "eet_erpcompany",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_name",
+											"type": "String",
+											"physicalType": "varchar"
+										},
+										"sink": {
+											"name": "eet_name",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "statecode",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "statecode",
+											"type": "Int32"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_ID_FabricLakehouse",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_iddev_dynamicscrm",
+								"type": "DatasetReference",
+								"parameters": {
+									"EntityName": "eet_manufacturer"
+								}
+							}
+						]
+					},
+					{
+						"name": "Equipment ProductCategory",
+						"type": "Copy",
+						"dependsOn": [
+							{
+								"activity": "Equipment Manufacturer",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "0.12:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"source": {
+								"type": "AzureSqlSource",
+								"sqlReaderQuery": "SELECT DISTINCT\r\n    TRIM(ProductCategory) AS eet_name,\r\n    TRIM(ProductCategoryName) AS eet_description,\r\n\tTRIM(ProductCategoryName) AS eet_category,\r\n\t100 AS eet_erpcompany,\r\n\t0 AS statecode\r\nFROM dimequipment\r\nWHERE ProductCategoryName IS NOT NULL\r\nAND ProductCategory IS NOT NULL\r\nAND TRIM(ProductCategory) <> ''\r\nAND CompanyID = '01DEP' ;",
+								"queryTimeout": "02:00:00",
+								"partitionOption": "None"
+							},
+							"sink": {
+								"type": "DynamicsCrmSink",
+								"writeBatchSize": 10,
+								"writeBehavior": "upsert",
+								"ignoreNullValues": false,
+								"alternateKeyName": "eet_productcategory_ak",
+								"bypassPowerAutomateFlows": false
+							},
+							"enableStaging": false,
+							"translator": {
+								"type": "TabularTranslator",
+								"mappings": [
+									{
+										"source": {
+											"name": "eet_category",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_category",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_description",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_description",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_erpcompany",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "eet_erpcompany",
+											"type": "Int32"
+										}
+									},
+									{
+										"source": {
+											"name": "eet_name",
+											"type": "String",
+											"physicalType": "nvarchar"
+										},
+										"sink": {
+											"name": "eet_name",
+											"type": "String"
+										}
+									},
+									{
+										"source": {
+											"name": "statecode",
+											"type": "Int32",
+											"physicalType": "int"
+										},
+										"sink": {
+											"name": "statecode",
+											"type": "Int32"
+										}
+									}
+								],
+								"typeConversion": true,
+								"typeConversionSettings": {
+									"allowDataTruncation": true,
+									"treatBooleanAsNumber": false
+								}
+							}
+						},
+						"inputs": [
+							{
+								"referenceName": "DS_ID_FabricLakehouse",
+								"type": "DatasetReference",
+								"parameters": {}
+							}
+						],
+						"outputs": [
+							{
+								"referenceName": "ds_iddev_dynamicscrm",
+								"type": "DatasetReference",
+								"parameters": {
+									"EntityName": "eet_productcategory"
+								}
+							}
+						]
+					}
+				],
+				"policy": {
+					"elapsedTimeMetric": {}
+				},
+				"folder": {
+					"name": "DynamicsCRM"
+				},
+				"annotations": [],
+				"lastPublishTime": "2026-04-09T12:16:10Z"
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/dataflows/DF_Contacts_DEV')]"
+			]
+		}
+	]
+}

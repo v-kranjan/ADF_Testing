@@ -1,0 +1,171 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "adf-intellibi"
+		},
+		"AzureBlobStorage1_connectionString": {
+			"value": ""
+		},
+		"AzureMySql1_connectionString": {
+			"value": ""
+		},
+		"AzureSqlAudit_connectionString": {
+			"value": "Integrated Security=False;Encrypt=True;Connection Timeout=30;Data Source=;Initial Catalog="
+		},
+		"AzureSqlDatabase1_connectionString": {
+			"value": ""
+		},
+		"AzureSqlDatabase2_password": {
+			"value": ""
+		},
+		"AzureSqlDatabase3_password": {
+			"value": ""
+		},
+		"AzureSqlDatabase4_password": {
+			"value": ""
+		},
+		"AzureSqlDatabase5_password": {
+			"value": ""
+		},
+		"AzureSqlDatabase6_password": {
+			"value": ""
+		},
+		"AzureSqlDatabaseAudit_connectionString": {
+			"value": ""
+		},
+		"Dynamics1_password": {
+			"value": ""
+		},
+		"DynamicsCrm_servicePrincipalCredential": {
+			"value": ""
+		},
+		"IDDEMOCRMDynamics_servicePrincipalCredential": {
+			"value": ""
+		},
+		"LS_ID_DEMO_FabricLakehouse_servicePrincipalCredential": {
+			"value": ""
+		},
+		"LS_ID_FabricLakehouse_servicePrincipalCredential": {
+			"value": ""
+		},
+		"Lakehouse1_servicePrincipalCredential": {
+			"value": ""
+		},
+		"extractfiles_connectionString": {
+			"value": ""
+		},
+		"ls_ID_Lakehouse_servicePrincipalCredential": {
+			"value": ""
+		},
+		"ls_iddev_crmdynamics_servicePrincipalCredential": {
+			"value": ""
+		},
+		"AzureKeyVault1_properties_typeProperties_baseUrl": {
+			"value": "https://eet-bi-keyvault.vault.azure.net/"
+		},
+		"AzureSqlDatabase2_properties_typeProperties_server": {
+			"value": "intellibidev.database.windows.net"
+		},
+		"AzureSqlDatabase2_properties_typeProperties_database": {
+			"value": "IntelliBI"
+		},
+		"AzureSqlDatabase2_properties_typeProperties_userName": {
+			"value": "intellibiadmin"
+		},
+		"AzureSqlDatabase3_properties_typeProperties_server": {
+			"value": "172.24.50.110"
+		},
+		"AzureSqlDatabase3_properties_typeProperties_database": {
+			"value": "extenddb"
+		},
+		"AzureSqlDatabase3_properties_typeProperties_userName": {
+			"value": "xAppsTransact"
+		},
+		"AzureSqlDatabase4_properties_typeProperties_server": {
+			"value": "172.24.50.110"
+		},
+		"AzureSqlDatabase4_properties_typeProperties_database": {
+			"value": "extenddb"
+		},
+		"AzureSqlDatabase4_properties_typeProperties_userName": {
+			"value": "xAppsTransact"
+		},
+		"AzureSqlDatabase5_properties_typeProperties_server": {
+			"value": "172.24.50.110"
+		},
+		"AzureSqlDatabase5_properties_typeProperties_database": {
+			"value": "extenddb"
+		},
+		"AzureSqlDatabase5_properties_typeProperties_userName": {
+			"value": "xAppsTransact"
+		},
+		"AzureSqlDatabase6_properties_typeProperties_server": {
+			"value": "172.24.50.110"
+		},
+		"AzureSqlDatabase6_properties_typeProperties_database": {
+			"value": "extenddb"
+		},
+		"AzureSqlDatabase6_properties_typeProperties_userName": {
+			"value": "xAppsTransact"
+		},
+		"Dynamics1_properties_typeProperties_username": {
+			"value": "xappscrm@e-emphasys.com"
+		},
+		"DynamicsCrm_properties_typeProperties_servicePrincipalId": {
+			"value": "033f9773-5dbc-4b3d-92fb-04ce9b416991"
+		},
+		"IDDEMOCRMDynamics_properties_typeProperties_servicePrincipalId": {
+			"value": "dc6f51a7-a92d-4586-825b-2a1ea27e91b5"
+		},
+		"LS_ID_DEMO_FabricLakehouse_properties_typeProperties_server": {
+			"value": "scl4djs3butetbj5ruko7s644y-dcizz5qxgebedk5ff5zk4rfkhy.datawarehouse.fabric.microsoft.com"
+		},
+		"LS_ID_DEMO_FabricLakehouse_properties_typeProperties_database": {
+			"value": "IDE_DEMO"
+		},
+		"LS_ID_DEMO_FabricLakehouse_properties_typeProperties_servicePrincipalId": {
+			"value": "1568ba9e-2683-4c8e-9f07-a0c1ae98ab79"
+		},
+		"LS_ID_DEMO_FabricLakehouse_properties_typeProperties_tenant": {
+			"value": "a6c19790-0d5b-4926-853d-8d14efcbdce6"
+		},
+		"LS_ID_FabricLakehouse_properties_typeProperties_server": {
+			"value": "scl4djs3butetbj5ruko7s644y-ozbmjcofrhxefezlhrd6v3fueq.datawarehouse.fabric.microsoft.com"
+		},
+		"LS_ID_FabricLakehouse_properties_typeProperties_database": {
+			"value": "Intelli_Lakehouse"
+		},
+		"LS_ID_FabricLakehouse_properties_typeProperties_servicePrincipalId": {
+			"value": "bb8d995b-6658-4dbc-b468-2c58c5ec2ca0"
+		},
+		"LS_ID_FabricLakehouse_properties_typeProperties_tenant": {
+			"value": "a6c19790-0d5b-4926-853d-8d14efcbdce6"
+		},
+		"Lakehouse1_properties_typeProperties_tenant": {
+			"value": "a6c19790-0d5b-4926-853d-8d14efcbdce6"
+		},
+		"Lakehouse1_properties_typeProperties_servicePrincipalId": {
+			"value": "1568ba9e-2683-4c8e-9f07-a0c1ae98ab79 "
+		},
+		"RestService1_properties_typeProperties_url": {
+			"value": "https://iddep-awfcgwgrf2bnekev.eastus2-01.azurewebsites.net"
+		},
+		"ls_ID_Lakehouse_properties_typeProperties_tenant": {
+			"value": "a6c19790-0d5b-4926-853d-8d14efcbdce6"
+		},
+		"ls_ID_Lakehouse_properties_typeProperties_servicePrincipalId": {
+			"value": "1568ba9e-2683-4c8e-9f07-a0c1ae98ab79"
+		},
+		"ls_iddev_crmdynamics_properties_typeProperties_servicePrincipalId": {
+			"value": "e1189f20-2404-4cd2-a7a7-0ac05aff91b8"
+		},
+		"containerUri": {
+			"value": ""
+		},
+		"containerSasToken": {
+			"value": ""
+		}
+	}
+}

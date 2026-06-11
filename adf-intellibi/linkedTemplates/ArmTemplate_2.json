@@ -1,0 +1,2596 @@
+{
+	"$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"type": "string",
+			"metadata": "Data Factory name",
+			"defaultValue": "adf-intellibi"
+		}
+	},
+	"variables": {
+		"factoryId": "[concat('Microsoft.DataFactory/factories/', parameters('factoryName'))]"
+	},
+	"resources": [
+		{
+			"name": "[concat(parameters('factoryName'), '/Archive')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "extractfiles",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TenantID": {
+						"type": "string",
+						"defaultValue": "TEST"
+					},
+					"ArchiveDate": {
+						"type": "string",
+						"defaultValue": "12-15-2021"
+					}
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": {
+							"value": "@concat(dataset().TenantID,'/',concat(utcnow('dd'),'-',utcnow('MM'),'-',utcnow('yyyy')))",
+							"type": "Expression"
+						},
+						"container": "extractarchives"
+					},
+					"columnDelimiter": "\t",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Archive_Accounts')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "extractfiles",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TenantID": {
+						"type": "string",
+						"defaultValue": "TEST"
+					},
+					"ArchiveDate": {
+						"type": "string",
+						"defaultValue": "12-15-2021"
+					},
+					"FSTCode": {
+						"type": "string",
+						"defaultValue": "BIFACT"
+					}
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": {
+							"value": "@concat(dataset().TenantID,'/',concat(utcnow('dd'),'-',utcnow('MM'),'-',utcnow('yyyy')),'/',dataset().FSTCode)",
+							"type": "Expression"
+						},
+						"container": "extractarchives"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": []
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSqlTable1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "DimDateKey",
+						"type": "smallint",
+						"precision": 5
+					},
+					{
+						"name": "full_date",
+						"type": "smalldatetime",
+						"precision": 16,
+						"scale": 0
+					},
+					{
+						"name": "day_of_week",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "day_num_in_month",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "day_num_overall",
+						"type": "smallint",
+						"precision": 5
+					},
+					{
+						"name": "day_name",
+						"type": "varchar"
+					},
+					{
+						"name": "day_abbrev",
+						"type": "char"
+					},
+					{
+						"name": "weekday_flag",
+						"type": "char"
+					},
+					{
+						"name": "week_num_in_year",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "week_num_overall",
+						"type": "smallint",
+						"precision": 5
+					},
+					{
+						"name": "week_begin_date",
+						"type": "smalldatetime",
+						"precision": 16,
+						"scale": 0
+					},
+					{
+						"name": "week_begin_date_key",
+						"type": "smallint",
+						"precision": 5
+					},
+					{
+						"name": "month",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "month_num_overall",
+						"type": "smallint",
+						"precision": 5
+					},
+					{
+						"name": "month_name",
+						"type": "varchar"
+					},
+					{
+						"name": "month_abbrev",
+						"type": "char"
+					},
+					{
+						"name": "quarter",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "year",
+						"type": "smallint",
+						"precision": 5
+					},
+					{
+						"name": "yearmo",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "fiscal_month",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "fiscal_quarter",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "fiscal_year",
+						"type": "smallint",
+						"precision": 5
+					},
+					{
+						"name": "last_day_in_month_flag",
+						"type": "char"
+					},
+					{
+						"name": "same_weekday_year_ago_date",
+						"type": "smalldatetime",
+						"precision": 16,
+						"scale": 0
+					},
+					{
+						"name": "half_year",
+						"type": "tinyint",
+						"precision": 3
+					},
+					{
+						"name": "fiscal_half_year",
+						"type": "tinyint",
+						"precision": 3
+					}
+				],
+				"typeProperties": {
+					"schema": "dev",
+					"table": "DimDate"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/AzureSql_DW_SP')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DSBLOBCopyLoadvalidation')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "extractfiles",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"CompanyID": {
+						"type": "string"
+					}
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "LoadValidationDetails.txt",
+						"folderPath": {
+							"value": "@concat(dataset().CompanyID,'/Checksum')",
+							"type": "Expression"
+						},
+						"container": "extractfiles"
+					},
+					"columnDelimiter": "\t",
+					"escapeChar": "\\",
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DSCopyValidationDetails')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlAudit",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "KeyCol",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "Code",
+						"type": "varchar"
+					},
+					{
+						"name": "ModuleName",
+						"type": "varchar"
+					},
+					{
+						"name": "TransactionType",
+						"type": "varchar"
+					},
+					{
+						"name": "DocNumber",
+						"type": "varchar"
+					},
+					{
+						"name": "FSTCode",
+						"type": "varchar"
+					},
+					{
+						"name": "Loaddate",
+						"type": "date"
+					},
+					{
+						"name": "eXtendValue",
+						"type": "decimal",
+						"precision": 38,
+						"scale": 4
+					},
+					{
+						"name": "Company",
+						"type": "varchar"
+					},
+					{
+						"name": "Sequence",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Position",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ValidationField",
+						"type": "varchar"
+					},
+					{
+						"name": "DWValue",
+						"type": "decimal",
+						"precision": 30,
+						"scale": 4
+					},
+					{
+						"name": "Variance",
+						"type": "decimal",
+						"precision": 30,
+						"scale": 4
+					}
+				],
+				"typeProperties": {
+					"schema": "dbo",
+					"table": "LoadValidationDetails"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DelimitedText1')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "extractfiles",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "DimDate.csv",
+						"folderPath": "dev",
+						"container": "extractfiles"
+					},
+					"columnDelimiter": ",",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"name": "full_date",
+						"type": "String"
+					},
+					{
+						"name": "day_of_week",
+						"type": "String"
+					},
+					{
+						"name": "day_num_in_month",
+						"type": "String"
+					},
+					{
+						"name": "day_num_overall",
+						"type": "String"
+					},
+					{
+						"name": "day_name",
+						"type": "String"
+					},
+					{
+						"name": "day_abbrev",
+						"type": "String"
+					},
+					{
+						"name": "weekday_flag",
+						"type": "String"
+					},
+					{
+						"name": "week_num_in_year",
+						"type": "String"
+					},
+					{
+						"name": "week_num_overall",
+						"type": "String"
+					},
+					{
+						"name": "week_begin_date",
+						"type": "String"
+					},
+					{
+						"name": "week_begin_date_key",
+						"type": "String"
+					},
+					{
+						"name": "month",
+						"type": "String"
+					},
+					{
+						"name": "month_num_overall",
+						"type": "String"
+					},
+					{
+						"name": "month_name",
+						"type": "String"
+					},
+					{
+						"name": "month_abbrev",
+						"type": "String"
+					},
+					{
+						"name": "quarter",
+						"type": "String"
+					},
+					{
+						"name": "year",
+						"type": "String"
+					},
+					{
+						"name": "yearmo",
+						"type": "String"
+					},
+					{
+						"name": "fiscal_month",
+						"type": "String"
+					},
+					{
+						"name": "fiscal_quarter",
+						"type": "String"
+					},
+					{
+						"name": "fiscal_year",
+						"type": "String"
+					},
+					{
+						"name": "last_day_in_month_flag",
+						"type": "String"
+					},
+					{
+						"name": "same_weekday_year_ago_date",
+						"type": "String"
+					},
+					{
+						"name": "half_year",
+						"type": "String"
+					},
+					{
+						"name": "fiscal_half_year",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DestLoadVaidationDetails')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabaseAudit",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"SchemaName": {
+						"type": "string",
+						"defaultValue": "dbo"
+					}
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "KeyCol",
+						"type": "bigint",
+						"precision": 19
+					},
+					{
+						"name": "Code",
+						"type": "varchar"
+					},
+					{
+						"name": "ModuleName",
+						"type": "varchar"
+					},
+					{
+						"name": "TransactionType",
+						"type": "varchar"
+					},
+					{
+						"name": "DocNumber",
+						"type": "varchar"
+					},
+					{
+						"name": "FSTCode",
+						"type": "varchar"
+					},
+					{
+						"name": "Loaddate",
+						"type": "date"
+					},
+					{
+						"name": "eXtendValue",
+						"type": "decimal",
+						"precision": 30,
+						"scale": 4
+					},
+					{
+						"name": "Company",
+						"type": "varchar"
+					},
+					{
+						"name": "Sequence",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Position",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ValidationField",
+						"type": "varchar"
+					},
+					{
+						"name": "DWValue",
+						"type": "decimal",
+						"precision": 30,
+						"scale": 4
+					},
+					{
+						"name": "Variance",
+						"type": "decimal",
+						"precision": 20,
+						"scale": 4
+					}
+				],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().SchemaName",
+						"type": "Expression"
+					},
+					"table": "LoadValidationDetails"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Destination')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TableName": {
+						"type": "string"
+					},
+					"SchemaName": {
+						"type": "string",
+						"defaultValue": "dbo"
+					}
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "DimFinKey",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DimFinParentKey",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DimID",
+						"type": "varchar"
+					},
+					{
+						"name": "DimDescription",
+						"type": "varchar"
+					},
+					{
+						"name": "DimSublevel",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "DimParentNum",
+						"type": "varchar"
+					},
+					{
+						"name": "CompanyNumber",
+						"type": "varchar"
+					},
+					{
+						"name": "ExtractionDate",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "DimRangeKey",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ModifiedDate",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "ID",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().SchemaName",
+						"type": "Expression"
+					},
+					"table": {
+						"value": "@dataset().TableName",
+						"type": "Expression"
+					}
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Destination_Account')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"SchemaName": {
+						"type": "string",
+						"defaultValue": "dbo"
+					}
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "DimAccountKey",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "AcctNumber",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctName",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctType",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup1",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup2",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup3",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup4",
+						"type": "varchar"
+					},
+					{
+						"name": "SortOrder",
+						"type": "decimal",
+						"precision": 25,
+						"scale": 0
+					},
+					{
+						"name": "CompanyNumber",
+						"type": "varchar"
+					},
+					{
+						"name": "FSTCode",
+						"type": "varchar"
+					},
+					{
+						"name": "Dim1 From Key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim1 to Key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 2 from Key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 2 to key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 3 from key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 3 to key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 4 from key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 4 to key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 5 from key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 5 to key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ExtractionDate",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "SortNumber",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "LongDescription",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup5",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup6",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup7",
+						"type": "varchar"
+					},
+					{
+						"name": "SubTotal",
+						"type": "varchar"
+					},
+					{
+						"name": "GroupNo",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Line Number",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo2",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo3",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo4",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo5",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo6",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo7",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "AcctGroup8",
+						"type": "varchar"
+					},
+					{
+						"name": "SearchKey",
+						"type": "varchar"
+					},
+					{
+						"name": "SequenceNumber",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "SharedCompany",
+						"type": "varchar"
+					},
+					{
+						"name": "SharedLogisticCompany",
+						"type": "varchar"
+					},
+					{
+						"name": "ID",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().SchemaName",
+						"type": "Expression"
+					},
+					"table": "DimAccount"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Destination_AccountStaging')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"SchemaName": {
+						"type": "string",
+						"defaultValue": "dbo"
+					}
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "AcctNumber",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctName",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctType",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup1",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup2",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup3",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup4",
+						"type": "varchar"
+					},
+					{
+						"name": "SortOrder",
+						"type": "decimal",
+						"precision": 25,
+						"scale": 0
+					},
+					{
+						"name": "CompanyNumber",
+						"type": "varchar"
+					},
+					{
+						"name": "FSTCode",
+						"type": "varchar"
+					},
+					{
+						"name": "Dim1 From Key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim1 to Key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 2 from Key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 2 to key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 3 from key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 3 to key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 4 from key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 4 to key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 5 from key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 5 to key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ExtractionDate",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "SortNumber",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "LongDescription",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup5",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup6",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup7",
+						"type": "varchar"
+					},
+					{
+						"name": "SubTotal",
+						"type": "varchar"
+					},
+					{
+						"name": "GroupNo",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Line Number",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo2",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo3",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo4",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo5",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo6",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo7",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "AcctGroup8",
+						"type": "varchar"
+					},
+					{
+						"name": "SearchKey",
+						"type": "varchar"
+					},
+					{
+						"name": "SequenceNumber",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "SharedCompany",
+						"type": "varchar"
+					},
+					{
+						"name": "SharedLogisticCompany",
+						"type": "varchar"
+					},
+					{
+						"name": "ID",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().SchemaName",
+						"type": "Expression"
+					},
+					"table": "DimAccount_Staging"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/PartsAging')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "extractfiles",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TenantID": {
+						"type": "string",
+						"defaultValue": "REV"
+					}
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "FactPartsAging.txt",
+						"folderPath": {
+							"value": "@dataset().TenantID",
+							"type": "Expression"
+						},
+						"container": "extractfiles"
+					},
+					"columnDelimiter": "\t",
+					"escapeChar": "\\",
+					"quoteChar": "\""
+				},
+				"schema": [
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					},
+					{
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/SQLResultSetDynamicAudit')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabaseAudit",
+					"type": "LinkedServiceReference"
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [],
+				"typeProperties": {}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Source')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "extractfiles",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TenantID": {
+						"type": "string",
+						"defaultValue": "dep"
+					}
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"folderPath": {
+							"value": "@dataset().TenantID",
+							"type": "Expression"
+						},
+						"container": "extractfiles"
+					},
+					"columnDelimiter": "\t",
+					"escapeChar": "",
+					"firstRowAsHeader": true,
+					"quoteChar": ""
+				},
+				"schema": [
+					{
+						"name": "AccountKey",
+						"type": "String"
+					},
+					{
+						"name": "Fin1Key",
+						"type": "String"
+					},
+					{
+						"name": "Fin2Key",
+						"type": "String"
+					},
+					{
+						"name": "Fin3Key",
+						"type": "String"
+					},
+					{
+						"name": "Fin4Key",
+						"type": "String"
+					},
+					{
+						"name": "Fin5Key",
+						"type": "String"
+					},
+					{
+						"name": "FiscalYear",
+						"type": "String"
+					},
+					{
+						"name": "FiscalMonth",
+						"type": "String"
+					},
+					{
+						"name": "TxnAmount",
+						"type": "String"
+					},
+					{
+						"name": "Transaction Type",
+						"type": "String"
+					},
+					{
+						"name": "DocumentNumber",
+						"type": "String"
+					},
+					{
+						"name": "BPNumber",
+						"type": "String"
+					},
+					{
+						"name": "OrderReference",
+						"type": "String"
+					},
+					{
+						"name": "OrderPosition",
+						"type": "String"
+					},
+					{
+						"name": "Sequence",
+						"type": "String"
+					},
+					{
+						"name": "Part",
+						"type": "String"
+					},
+					{
+						"name": "EquipmentKey",
+						"type": "String"
+					},
+					{
+						"name": "TransRefer",
+						"type": "String"
+					},
+					{
+						"name": "BatchRef",
+						"type": "String"
+					},
+					{
+						"name": "OrderInvoiceNumber",
+						"type": "String"
+					},
+					{
+						"name": "OrderInvoiceSequence",
+						"type": "String"
+					},
+					{
+						"name": "FinalDate",
+						"type": "String"
+					},
+					{
+						"name": "FinalTime",
+						"type": "String"
+					},
+					{
+						"name": "CompanyID",
+						"type": "String"
+					},
+					{
+						"name": "CurrencyKey",
+						"type": "String"
+					},
+					{
+						"name": "FSTCode",
+						"type": "String"
+					},
+					{
+						"name": "DocumentDateKey",
+						"type": "String"
+					},
+					{
+						"name": "LineNumber",
+						"type": "String"
+					},
+					{
+						"name": "Sequence Number",
+						"type": "String"
+					},
+					{
+						"name": "Background SeqNo",
+						"type": "String"
+					},
+					{
+						"name": "Correction Transaction Type",
+						"type": "String"
+					},
+					{
+						"name": "Correction Invoice Number",
+						"type": "String"
+					},
+					{
+						"name": "LastUsedBy",
+						"type": "String"
+					},
+					{
+						"name": "ServiceOrder",
+						"type": "String"
+					},
+					{
+						"name": "SegmentNo",
+						"type": "String"
+					},
+					{
+						"name": "Debit/Credit",
+						"type": "String"
+					},
+					{
+						"name": "Tax Code",
+						"type": "String"
+					},
+					{
+						"name": "InvoiceTypeCode",
+						"type": "String"
+					},
+					{
+						"name": "InvoiceNumber",
+						"type": "String"
+					},
+					{
+						"name": "Cost Component",
+						"type": "String"
+					},
+					{
+						"name": "Reference",
+						"type": "String"
+					},
+					{
+						"name": "FinancialTransaction",
+						"type": "String"
+					},
+					{
+						"name": "BatchNumber",
+						"type": "String"
+					},
+					{
+						"name": "SharedCompanyNumber",
+						"type": "String"
+					},
+					{
+						"name": "SharedLogisticCompany",
+						"type": "String"
+					},
+					{
+						"name": "PeriodType",
+						"type": "String"
+					},
+					{
+						"name": "ID",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Source_Accounts')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "extractfiles",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TenantID": {
+						"type": "string",
+						"defaultValue": "TEST"
+					},
+					"FSTCode": {
+						"type": "string",
+						"defaultValue": "BIFACT"
+					}
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "DimAccount.txt",
+						"folderPath": {
+							"value": "@concat(dataset().TenantID,'/',dataset().FSTCode)",
+							"type": "Expression"
+						},
+						"container": "extractfiles"
+					},
+					"columnDelimiter": "\t",
+					"escapeChar": "\\",
+					"firstRowAsHeader": true,
+					"quoteChar": ""
+				},
+				"schema": [
+					{
+						"name": "AcctNumber",
+						"type": "String"
+					},
+					{
+						"name": "AcctName",
+						"type": "String"
+					},
+					{
+						"name": "AcctType",
+						"type": "String"
+					},
+					{
+						"name": "AcctGroup1",
+						"type": "String"
+					},
+					{
+						"name": "AcctGroup2",
+						"type": "String"
+					},
+					{
+						"name": "AcctGroup3",
+						"type": "String"
+					},
+					{
+						"name": "AcctGroup4",
+						"type": "String"
+					},
+					{
+						"name": "AcctGroup5",
+						"type": "String"
+					},
+					{
+						"name": "AcctGroup6",
+						"type": "String"
+					},
+					{
+						"name": "AcctGroup7",
+						"type": "String"
+					},
+					{
+						"name": "SubTotal",
+						"type": "String"
+					},
+					{
+						"name": "SortOrder",
+						"type": "String"
+					},
+					{
+						"name": "CompanyNumber",
+						"type": "String"
+					},
+					{
+						"name": "FSTCode",
+						"type": "String"
+					},
+					{
+						"name": "Dim1 From Key",
+						"type": "String"
+					},
+					{
+						"name": "Dim1 to Key",
+						"type": "String"
+					},
+					{
+						"name": "Dim 2 from Key",
+						"type": "String"
+					},
+					{
+						"name": "Dim 2 to key",
+						"type": "String"
+					},
+					{
+						"name": "Dim 3 from key",
+						"type": "String"
+					},
+					{
+						"name": "Dim 3 to key",
+						"type": "String"
+					},
+					{
+						"name": "Dim 4 from key",
+						"type": "String"
+					},
+					{
+						"name": "Dim 4 to key",
+						"type": "String"
+					},
+					{
+						"name": "Dim 5 from key",
+						"type": "String"
+					},
+					{
+						"name": "Dim 5 to key",
+						"type": "String"
+					},
+					{
+						"name": "LongDescription",
+						"type": "String"
+					},
+					{
+						"name": "GroupNo",
+						"type": "String"
+					},
+					{
+						"name": "Line Number",
+						"type": "String"
+					},
+					{
+						"name": "GroupNo2",
+						"type": "String"
+					},
+					{
+						"name": "GroupNo3",
+						"type": "String"
+					},
+					{
+						"name": "GroupNo4",
+						"type": "String"
+					},
+					{
+						"name": "GroupNo5",
+						"type": "String"
+					},
+					{
+						"name": "GroupNo6",
+						"type": "String"
+					},
+					{
+						"name": "GroupNo7",
+						"type": "String"
+					},
+					{
+						"name": "SearchKey",
+						"type": "String"
+					},
+					{
+						"name": "SequenceNumber",
+						"type": "String"
+					},
+					{
+						"name": "SharedCompany",
+						"type": "String"
+					},
+					{
+						"name": "SharedLogisticCompany",
+						"type": "String"
+					},
+					{
+						"name": "ID",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Source_DimAccountStaging')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "AzureSqlDatabase1",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"SchemaName": {
+						"type": "string",
+						"defaultValue": "dbo"
+					}
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "AzureSqlTable",
+				"schema": [
+					{
+						"name": "AcctNumber",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctName",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctType",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup1",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup2",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup3",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup4",
+						"type": "varchar"
+					},
+					{
+						"name": "SortOrder",
+						"type": "decimal",
+						"precision": 25,
+						"scale": 0
+					},
+					{
+						"name": "CompanyNumber",
+						"type": "varchar"
+					},
+					{
+						"name": "FSTCode",
+						"type": "varchar"
+					},
+					{
+						"name": "Dim1 From Key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim1 to Key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 2 from Key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 2 to key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 3 from key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 3 to key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 4 from key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 4 to key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 5 from key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Dim 5 to key",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "ExtractionDate",
+						"type": "datetime",
+						"precision": 23,
+						"scale": 3
+					},
+					{
+						"name": "SortNumber",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "LongDescription",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup5",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup6",
+						"type": "varchar"
+					},
+					{
+						"name": "AcctGroup7",
+						"type": "varchar"
+					},
+					{
+						"name": "SubTotal",
+						"type": "varchar"
+					},
+					{
+						"name": "GroupNo",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "Line Number",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo2",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo3",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo4",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo5",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo6",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "GroupNo7",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "AcctGroup8",
+						"type": "varchar"
+					},
+					{
+						"name": "SearchKey",
+						"type": "varchar"
+					},
+					{
+						"name": "SequenceNumber",
+						"type": "int",
+						"precision": 10
+					},
+					{
+						"name": "SharedCompany",
+						"type": "varchar"
+					},
+					{
+						"name": "SharedLogisticCompany",
+						"type": "varchar"
+					},
+					{
+						"name": "ID",
+						"type": "varchar"
+					}
+				],
+				"typeProperties": {
+					"schema": {
+						"value": "@dataset().SchemaName",
+						"type": "Expression"
+					},
+					"table": "DimAccount_Staging_VW"
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Source_FinAnalysisInsert')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "extractfiles",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TenantID": {
+						"type": "string",
+						"defaultValue": "dep"
+					}
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "FactFinAnalysis.csv",
+						"folderPath": {
+							"value": "@dataset().TenantID",
+							"type": "Expression"
+						},
+						"container": "extractfiles"
+					},
+					"columnDelimiter": "\t",
+					"escapeChar": "",
+					"firstRowAsHeader": true,
+					"quoteChar": ""
+				},
+				"schema": [
+					{
+						"name": "AccountKey",
+						"type": "String"
+					},
+					{
+						"name": "Fin1Key",
+						"type": "String"
+					},
+					{
+						"name": "Fin2Key",
+						"type": "String"
+					},
+					{
+						"name": "Fin3Key",
+						"type": "String"
+					},
+					{
+						"name": "Fin4Key",
+						"type": "String"
+					},
+					{
+						"name": "Fin5Key",
+						"type": "String"
+					},
+					{
+						"name": "FiscalYear",
+						"type": "String"
+					},
+					{
+						"name": "FiscalMonth",
+						"type": "String"
+					},
+					{
+						"name": "TxnAmount",
+						"type": "String"
+					},
+					{
+						"name": "Transaction Type",
+						"type": "String"
+					},
+					{
+						"name": "DocumentNumber",
+						"type": "String"
+					},
+					{
+						"name": "BPNumber",
+						"type": "String"
+					},
+					{
+						"name": "OrderReference",
+						"type": "String"
+					},
+					{
+						"name": "OrderPosition",
+						"type": "String"
+					},
+					{
+						"name": "Sequence",
+						"type": "String"
+					},
+					{
+						"name": "Part",
+						"type": "String"
+					},
+					{
+						"name": "EquipmentKey",
+						"type": "String"
+					},
+					{
+						"name": "TransRefer",
+						"type": "String"
+					},
+					{
+						"name": "BatchRef",
+						"type": "String"
+					},
+					{
+						"name": "OrderInvoiceNumber",
+						"type": "String"
+					},
+					{
+						"name": "OrderInvoiceSequence",
+						"type": "String"
+					},
+					{
+						"name": "FinalDate",
+						"type": "String"
+					},
+					{
+						"name": "FinalTime",
+						"type": "String"
+					},
+					{
+						"name": "CompanyID",
+						"type": "String"
+					},
+					{
+						"name": "CurrencyKey",
+						"type": "String"
+					},
+					{
+						"name": "FSTCode",
+						"type": "String"
+					},
+					{
+						"name": "DocumentDateKey",
+						"type": "String"
+					},
+					{
+						"name": "LineNumber",
+						"type": "String"
+					},
+					{
+						"name": "Sequence Number",
+						"type": "String"
+					},
+					{
+						"name": "Background SeqNo",
+						"type": "String"
+					},
+					{
+						"name": "Correction Transaction Type",
+						"type": "String"
+					},
+					{
+						"name": "Correction Invoice Number",
+						"type": "String"
+					},
+					{
+						"name": "LastUsedBy",
+						"type": "String"
+					},
+					{
+						"name": "ServiceOrder",
+						"type": "String"
+					},
+					{
+						"name": "SegmentNo",
+						"type": "String"
+					},
+					{
+						"name": "Debit/Credit",
+						"type": "String"
+					},
+					{
+						"name": "Tax Code",
+						"type": "String"
+					},
+					{
+						"name": "InvoiceTypeCode",
+						"type": "String"
+					},
+					{
+						"name": "InvoiceNumber",
+						"type": "String"
+					},
+					{
+						"name": "Cost Component",
+						"type": "String"
+					},
+					{
+						"name": "Reference",
+						"type": "String"
+					},
+					{
+						"name": "FinancialTransaction",
+						"type": "String"
+					},
+					{
+						"name": "BatchNumber",
+						"type": "String"
+					},
+					{
+						"name": "SharedCompanyNumber",
+						"type": "String"
+					},
+					{
+						"name": "SharedLogisticCompany",
+						"type": "String"
+					},
+					{
+						"name": "PeriodType",
+						"type": "String"
+					},
+					{
+						"name": "ID",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/Source_Test')]",
+			"type": "Microsoft.DataFactory/factories/datasets",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"linkedServiceName": {
+					"referenceName": "extractfiles",
+					"type": "LinkedServiceReference"
+				},
+				"parameters": {
+					"TenantID": {
+						"type": "string",
+						"defaultValue": "dep"
+					}
+				},
+				"folder": {
+					"name": "e-Emphasys BI 5.2 Datasets"
+				},
+				"annotations": [],
+				"type": "DelimitedText",
+				"typeProperties": {
+					"location": {
+						"type": "AzureBlobStorageLocation",
+						"fileName": "Data.txt",
+						"folderPath": "dev-old",
+						"container": "extractfiles"
+					},
+					"columnDelimiter": "\t",
+					"escapeChar": "",
+					"firstRowAsHeader": true,
+					"quoteChar": ""
+				},
+				"schema": [
+					{
+						"name": "AccountKey",
+						"type": "String"
+					},
+					{
+						"name": "Fin1Key",
+						"type": "String"
+					},
+					{
+						"name": "Fin2Key",
+						"type": "String"
+					},
+					{
+						"name": "Fin3Key",
+						"type": "String"
+					},
+					{
+						"name": "Fin4Key",
+						"type": "String"
+					},
+					{
+						"name": "Fin5Key",
+						"type": "String"
+					},
+					{
+						"name": "FiscalYear",
+						"type": "String"
+					},
+					{
+						"name": "FiscalMonth",
+						"type": "String"
+					},
+					{
+						"name": "TxnAmount",
+						"type": "String"
+					},
+					{
+						"name": "Transaction Type",
+						"type": "String"
+					},
+					{
+						"name": "DocumentNumber",
+						"type": "String"
+					},
+					{
+						"name": "BPNumber",
+						"type": "String"
+					},
+					{
+						"name": "OrderReference",
+						"type": "String"
+					},
+					{
+						"name": "OrderPosition",
+						"type": "String"
+					},
+					{
+						"name": "Sequence",
+						"type": "String"
+					},
+					{
+						"name": "Part",
+						"type": "String"
+					},
+					{
+						"name": "EquipmentKey",
+						"type": "String"
+					},
+					{
+						"name": "TransRefer",
+						"type": "String"
+					},
+					{
+						"name": "BatchRef",
+						"type": "String"
+					},
+					{
+						"name": "OrderInvoiceNumber",
+						"type": "String"
+					},
+					{
+						"name": "OrderInvoiceSequence",
+						"type": "String"
+					},
+					{
+						"name": "FinalDate",
+						"type": "String"
+					},
+					{
+						"name": "FinalTime",
+						"type": "String"
+					},
+					{
+						"name": "CompanyID",
+						"type": "String"
+					},
+					{
+						"name": "CurrencyKey",
+						"type": "String"
+					},
+					{
+						"name": "FSTCode",
+						"type": "String"
+					},
+					{
+						"name": "DocumentDateKey",
+						"type": "String"
+					},
+					{
+						"name": "LineNumber",
+						"type": "String"
+					},
+					{
+						"name": "Sequence Number",
+						"type": "String"
+					},
+					{
+						"name": "Background SeqNo",
+						"type": "String"
+					},
+					{
+						"name": "Correction Transaction Type",
+						"type": "String"
+					},
+					{
+						"name": "Correction Invoice Number",
+						"type": "String"
+					},
+					{
+						"name": "LastUsedBy",
+						"type": "String"
+					},
+					{
+						"name": "ServiceOrder",
+						"type": "String"
+					},
+					{
+						"name": "SegmentNo",
+						"type": "String"
+					},
+					{
+						"name": "Debit/Credit",
+						"type": "String"
+					},
+					{
+						"name": "Tax Code",
+						"type": "String"
+					},
+					{
+						"name": "InvoiceTypeCode",
+						"type": "String"
+					},
+					{
+						"name": "InvoiceNumber",
+						"type": "String"
+					},
+					{
+						"name": "Cost Component",
+						"type": "String"
+					},
+					{
+						"name": "Reference",
+						"type": "String"
+					},
+					{
+						"name": "FinancialTransaction",
+						"type": "String"
+					},
+					{
+						"name": "BatchNumber",
+						"type": "String"
+					},
+					{
+						"name": "SharedCompanyNumber",
+						"type": "String"
+					},
+					{
+						"name": "SharedLogisticCompany",
+						"type": "String"
+					},
+					{
+						"name": "PeriodType",
+						"type": "String"
+					},
+					{
+						"name": "ID",
+						"type": "String"
+					}
+				]
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Address')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "Fetch_API_Data",
+								"type": "DatasetReference"
+							},
+							"name": "GetAddressFromAPI"
+						},
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity_Lookup",
+								"type": "DatasetReference"
+							},
+							"name": "GetAccountIDFromCRM"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "lookup1"
+						},
+						{
+							"name": "flatten1"
+						},
+						{
+							"name": "AlterRow1"
+						},
+						{
+							"name": "derivedColumn1"
+						}
+					],
+					"scriptLines": [
+						"parameters{",
+						"     Token as string",
+						"}",
+						"source(output(",
+						"          body as (currentPageNumber as short, data as (address1 as string, address2 as string, address3 as string, addressCode as integer, addressKey as string, addressName as string, addressNumber as short, appartmentNumber as short, city as string, company as short, country as string, countryCode as string, county as string, division as short, erpKey as string, fax as short, invoiceTo as boolean, latitude as string, longitude as string, phone as string, postalZipCode as integer, sequenceNumber as short, shipTo as boolean, soldTo as boolean, stateCode as string, status as string, web as string)[], more as boolean, nextPageNumber as short, pageSize as short, totalPages as short, totalRecords as short),",
+						"          headers as [string,string]",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     httpMethod: 'GET',",
+						"     timeout: 30,",
+						"     requestInterval: 0,",
+						"     headers: ['Authorization' -> (concat('Bearer ', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IklEMUdXRDdEQTJNMTREMzZBQiRZVUkyMzREOVVKMjM0NUYkS0owOSJ9.eyJqdGkiOiIwZDljOWViMi1jY2IyLTQwMDUtYjZmZC00OTRmZWIzNTY4NGEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IklEIiwiZXhwIjoxNzU0ODkwMTQwLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjU2ODY2LyIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NTY4NjYvIn0.W4zpiH4VLvP41xScornhzpQinaf5r9cCCfEAizV-Gok'))],",
+						"     paginationRules: ['supportRFC5988' -> 'true'],",
+						"     responseFormat: ['type' -> 'json', 'documentForm' -> 'singleDocument'],",
+						"     booleanFormat: ['true', 'false']) ~> GetAddressFromAPI",
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          accountid as string,",
+						"          accountnumber as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n   <entity name=\"account\">\\n       <attribute name=\"accountid\" />\\n       <attribute name=\"accountnumber\" />\\n   </entity>\\n</fetch>') ~> GetAccountIDFromCRM",
+						"flatten1, GetAccountIDFromCRM lookup(trim(toString(addressCode)) == trim(accountnumber),",
+						"     multiple: true,",
+						"     broadcast: 'auto',",
+						"     pickup: 'any')~> lookup1",
+						"GetAddressFromAPI foldDown(unroll(body.data),",
+						"     mapColumn(",
+						"          address1 = body.data.address1,",
+						"          address2 = body.data.address2,",
+						"          address3 = body.data.address3,",
+						"          addressCode = body.data.addressCode,",
+						"          addressKey = body.data.addressKey,",
+						"          addressName = body.data.addressName,",
+						"          addressNumber = body.data.addressNumber,",
+						"          appartmentNumber = body.data.appartmentNumber,",
+						"          city = body.data.city,",
+						"          company = body.data.company,",
+						"          country = body.data.country,",
+						"          countryCode = body.data.countryCode,",
+						"          county = body.data.county,",
+						"          division = body.data.division,",
+						"          erpKey = body.data.erpKey,",
+						"          fax = body.data.fax,",
+						"          invoiceTo = body.data.invoiceTo,",
+						"          latitude = body.data.latitude,",
+						"          longitude = body.data.longitude,",
+						"          phone = body.data.phone,",
+						"          postalZipCode = body.data.postalZipCode,",
+						"          sequenceNumber = body.data.sequenceNumber,",
+						"          shipTo = body.data.shipTo,",
+						"          soldTo = body.data.soldTo,",
+						"          stateCode = body.data.stateCode,",
+						"          status = body.data.status,",
+						"          web = body.data.web",
+						"     ),",
+						"     skipDuplicateMapInputs: false,",
+						"     skipDuplicateMapOutputs: false) ~> flatten1",
+						"lookup1 alterRow(upsertIf(true())) ~> AlterRow1",
+						"AlterRow1 derive({parentid_account@odata.bind} = \"/accounts(\" + accountid + \")\",",
+						"          eet_state = 276040000,",
+						"          eet_email = \"Test@ee.com\",",
+						"          eet_country = 276040000,",
+						"          eet_extendcompany = 100) ~> derivedColumn1",
+						"derivedColumn1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:true,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     alternateKeyName: 'crdb8_erpkey',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          {parentid_account@odata.bind},",
+						"          eet_extendkey = erpKey,",
+						"          eet_country,",
+						"          eet_email,",
+						"          eet_extendcompany,",
+						"          eet_state,",
+						"          line1 = address1,",
+						"          name = addressName,",
+						"          eet_deliveryaddress = shipTo,",
+						"          eet_invoiceaddress = invoiceTo,",
+						"          eet_orderingaddress = soldTo",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/DF_Address_SoldToRole')]",
+			"type": "Microsoft.DataFactory/factories/dataflows",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"type": "MappingDataFlow",
+				"typeProperties": {
+					"sources": [
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity_Lookup",
+								"type": "DatasetReference"
+							},
+							"name": "GetCustomerAddressIdFromCRM"
+						}
+					],
+					"sinks": [
+						{
+							"dataset": {
+								"referenceName": "DynamicsCrmEntity",
+								"type": "DatasetReference"
+							},
+							"name": "sink1"
+						}
+					],
+					"transformations": [
+						{
+							"name": "derivedColumn1"
+						},
+						{
+							"name": "AlterRow1"
+						}
+					],
+					"scriptLines": [
+						"source(output(",
+						"          {@odata.etag} as string,",
+						"          addressnumber as string,",
+						"          customeraddressid as string",
+						"     ),",
+						"     allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     query: '<fetch>\\n  <entity name=\"customeraddress\">\\n    <attribute name=\"customeraddressid\" />\\n    <attribute name=\"eet_extendkey\" />\\n    <attribute name=\"addressnumber\" />\\n    <filter>\\n      <condition attribute=\"addressnumber\" operator=\"eq\" value=\"1\" />\\n    </filter>\\n  </entity>\\n</fetch>\\n') ~> GetCustomerAddressIdFromCRM",
+						"GetCustomerAddressIdFromCRM derive(eet_soldtorole = true()) ~> derivedColumn1",
+						"derivedColumn1 alterRow(upsertIf(true())) ~> AlterRow1",
+						"AlterRow1 sink(allowSchemaDrift: true,",
+						"     validateSchema: false,",
+						"     deletable:false,",
+						"     insertable:false,",
+						"     updateable:false,",
+						"     upsertable:true,",
+						"     alternateKeyName: 'crdb8_erpkey',",
+						"     skipDuplicateMapInputs: true,",
+						"     skipDuplicateMapOutputs: true,",
+						"     mapColumn(",
+						"          customeraddressid,",
+						"          eet_orderingaddress = eet_soldtorole",
+						"     )) ~> sink1"
+					]
+				}
+			},
+			"dependsOn": []
+		}
+	]
+}
