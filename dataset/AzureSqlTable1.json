@@ -1,0 +1,148 @@
+{
+	"name": "AzureSqlTable1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Datasets"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "DimDateKey",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "full_date",
+				"type": "smalldatetime",
+				"precision": 16,
+				"scale": 0
+			},
+			{
+				"name": "day_of_week",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "day_num_in_month",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "day_num_overall",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "day_name",
+				"type": "varchar"
+			},
+			{
+				"name": "day_abbrev",
+				"type": "char"
+			},
+			{
+				"name": "weekday_flag",
+				"type": "char"
+			},
+			{
+				"name": "week_num_in_year",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "week_num_overall",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "week_begin_date",
+				"type": "smalldatetime",
+				"precision": 16,
+				"scale": 0
+			},
+			{
+				"name": "week_begin_date_key",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "month",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "month_num_overall",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "month_name",
+				"type": "varchar"
+			},
+			{
+				"name": "month_abbrev",
+				"type": "char"
+			},
+			{
+				"name": "quarter",
+				"type": "tinyint",
+				"precision": 3
+			},
+			{
+				"name": "year",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "yearmo",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "fiscal_month",
+				"type": "tinyint",
+				"precision": 3
+			},
+			{
+				"name": "fiscal_quarter",
+				"type": "tinyint",
+				"precision": 3
+			},
+			{
+				"name": "fiscal_year",
+				"type": "smallint",
+				"precision": 5
+			},
+			{
+				"name": "last_day_in_month_flag",
+				"type": "char"
+			},
+			{
+				"name": "same_weekday_year_ago_date",
+				"type": "smalldatetime",
+				"precision": 16,
+				"scale": 0
+			},
+			{
+				"name": "half_year",
+				"type": "tinyint",
+				"precision": 3
+			},
+			{
+				"name": "fiscal_half_year",
+				"type": "tinyint",
+				"precision": 3
+			}
+		],
+		"typeProperties": {
+			"schema": "dev",
+			"table": "DimDate"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

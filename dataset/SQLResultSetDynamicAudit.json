@@ -1,0 +1,16 @@
+{
+	"name": "SQLResultSetDynamicAudit",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabaseAudit",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Datasets"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

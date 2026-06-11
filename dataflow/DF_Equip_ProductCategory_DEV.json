@@ -1,0 +1,113 @@
+{
+	"name": "DF_Equip_ProductCategory_DEV",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_ID_FabricLakehouse",
+						"type": "DatasetReference"
+					},
+					"name": "GetUnitNumber"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_iddev_dynamicscrm",
+						"type": "DatasetReference"
+					},
+					"name": "GetProductCategoryIdFromCRM"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_iddev_dynamicscrm2",
+						"type": "DatasetReference"
+					},
+					"name": "GetproductIDfromProduct"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "join2"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Unit as string,",
+				"          ProductCategory as string,",
+				"          CompanyID as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT DISTINCT TRIM(UnitNumber) Unit, ProductCategory, CompanyID FROM dimequipment WHERE ProductCategoryName IS NOT NULL AND ProductCategory IS NOT NULL AND TRIM(ProductCategory) <> \\'\\' AND CompanyID = \\'01DEP\\' ',",
+				"     format: 'query',",
+				"     booleanFormat: ['true', 'false']) ~> GetUnitNumber",
+				"source(output(",
+				"          {@odata.etag} as string,",
+				"          eet_name as string,",
+				"          eet_productcategoryid as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: '<fetch>\\n   <entity name=\"eet_productcategory\">\\n       <attribute name=\"eet_productcategoryid\" />\\n       <attribute name=\"eet_name\" />\\n   </entity>\\n</fetch>') ~> GetProductCategoryIdFromCRM",
+				"source(output(",
+				"          {@odata.etag} as string,",
+				"          eet_extendcompany as string,",
+				"          eet_extendkey as string,",
+				"          eet_unitnumber as string,",
+				"          productid as string,",
+				"          productnumber as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: '<fetch>\\n  <entity name=\"product\">\\n    <attribute name=\"productid\" />\\n    <attribute name=\"productnumber\" />\\n    <attribute name=\"eet_unitnumber\" />\\n    <attribute name=\"eet_extendcompany\" />\\n    <attribute name=\"eet_extendkey\" />\\n\\n    <filter type=\"and\">\\n      <condition attribute=\"eet_unitnumber\" operator=\"not-null\" />\\n      <condition attribute=\"productnumber\" operator=\"not-null\" />\\n\\n      <filter type=\"or\">\\n        <condition attribute=\"producttypecode\" operator=\"eq\" value=\"200000\" />\\n        <condition attribute=\"producttypecode\" operator=\"eq\" value=\"200001\" />\\n      </filter>\\n\\n    </filter>\\n  </entity>\\n</fetch>\\n') ~> GetproductIDfromProduct",
+				"join2 alterRow(upsertIf(true())) ~> AlterRow1",
+				"AlterRow1 derive({eet_productcategoryid@odata.bind} = \"/eet_productcategories(\" + eet_productcategoryid + \")\") ~> derivedColumn1",
+				"GetUnitNumber, GetProductCategoryIdFromCRM join(ProductCategory == eet_name,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1, GetproductIDfromProduct join(Unit == eet_unitnumber,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     alternateKeyName: 'crdb8_productid',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          {eet_productcategoryid@odata.bind},",
+				"          productnumber,",
+				"          eet_extendcompany,",
+				"          eet_extendkey",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

@@ -1,0 +1,44 @@
+{
+	"name": "Archive_Accounts",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "extractfiles",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TenantID": {
+				"type": "string",
+				"defaultValue": "TEST"
+			},
+			"ArchiveDate": {
+				"type": "string",
+				"defaultValue": "12-15-2021"
+			},
+			"FSTCode": {
+				"type": "string",
+				"defaultValue": "BIFACT"
+			}
+		},
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Datasets"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"folderPath": {
+					"value": "@concat(dataset().TenantID,'/',concat(utcnow('dd'),'-',utcnow('MM'),'-',utcnow('yyyy')),'/',dataset().FSTCode)",
+					"type": "Expression"
+				},
+				"container": "extractarchives"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

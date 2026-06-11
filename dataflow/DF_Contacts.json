@@ -1,0 +1,119 @@
+{
+	"name": "DF_Contacts",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Fetch_API_Data",
+						"type": "DatasetReference"
+					},
+					"name": "GetContacts"
+				},
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity_Lookup",
+						"type": "DatasetReference"
+					},
+					"name": "GetAccountID"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "flatten1"
+				},
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          body as (currentPageNumber as short, data as (buyFromBusinessPartner as string, cellNumber as string, company as short, contactCode as short, customerCode as string, customerName as string, department as string, designation as string, division as short, eXtendKey as string, eet_contactcode as string, eet_extendcompany as short, eet_syncwithextend as short, email as string, fax as string, firstName as string, fullName as string, invoiceFromBusinessPartner as string, invoiceToBusinessPartner as short, lastName as string, middleName as string, mobileNumber as string, payFromBusinessPartner as boolean, payToBusinessPartner as string, phone as string, shipFromBusinessPartner as string, shipToBusinessPartner as string, soldToBusinessPartner as short, statecode as short, title as string)[], more as boolean, nextPageNumber as short, pageSize as short, totalPages as short, totalRecords as short),",
+				"          headers as [string,string]",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     httpMethod: 'GET',",
+				"     timeout: 30,",
+				"     requestInterval: 0,",
+				"     headers: ['Authorization' -> (concat('Bearer ', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IklEMUdXRDdEQTJNMTREMzZBQiRZVUkyMzREOVVKMjM0NUYkS0owOSJ9.eyJqdGkiOiIyNDI2MmQ1NS0xNzRhLTQ2NjYtYTkwZC0zZTU0YjEwNzg5ZDkiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IklEIiwiZXhwIjoxNzU1NzY2OTk0LCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjU2ODY2LyIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NTY4NjYvIn0.ZjSCmbVZzZb3eNOWN8_jCVlsG6X9S2_SuG_Ov2jL2J0'))],",
+				"     paginationRules: ['supportRFC5988' -> 'true'],",
+				"     responseFormat: ['type' -> 'json', 'documentForm' -> 'singleDocument'],",
+				"     booleanFormat: ['true', 'false']) ~> GetContacts",
+				"source(output(",
+				"          {@odata.etag} as string,",
+				"          accountid as string,",
+				"          accountnumber as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: '<fetch>\\n   <entity name=\"account\">\\n       <attribute name=\"accountid\" />\\n       <attribute name=\"accountnumber\" />\\n \\n   </entity>\\n</fetch>\\n') ~> GetAccountID",
+				"flatten1, GetAccountID lookup(trim(customerCode) == trim(accountnumber),",
+				"     multiple: true,",
+				"     broadcast: 'auto',",
+				"     pickup: 'any')~> lookup1",
+				"GetContacts foldDown(unroll(body.data),",
+				"     mapColumn(",
+				"          body = body.data.buyFromBusinessPartner,",
+				"          cellNumber = body.data.cellNumber,",
+				"          contactcode = body.data.contactCode,",
+				"          customerCode = body.data.customerCode,",
+				"          customerName = body.data.customerName,",
+				"          department = body.data.department,",
+				"          fullName = body.data.fullName,",
+				"          email = body.data.email,",
+				"          eet_extendcompany = body.data.soldToBusinessPartner,",
+				"          ownerid = body.data.shipToBusinessPartner,",
+				"          statecode = body.data.invoiceToBusinessPartner,",
+				"          eet_syncwithextend = body.data.payFromBusinessPartner,",
+				"          lastName = body.data.lastName,",
+				"          eet_contactcode = body.data.eet_contactcode,",
+				"          firstName = body.data.firstName,",
+				"          phone = body.data.phone,",
+				"          fax = body.data.fax,",
+				"          extendkey = body.data.eXtendKey",
+				"     ),",
+				"     skipDuplicateMapInputs: false,",
+				"     skipDuplicateMapOutputs: false) ~> flatten1",
+				"lookup1 alterRow(upsertIf(true())) ~> AlterRow1",
+				"AlterRow1 derive({parentcustomerid_account@odata.bind} = \"/accounts(\" + accountid + \")\") ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     alternateKeyName: 'crdb8_extendkey',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          {parentcustomerid_account@odata.bind},",
+				"          fullname = fullName,",
+				"          eet_contactcode,",
+				"          eet_extendcompany,",
+				"          lastname = lastName,",
+				"          eet_syncwithextend,",
+				"          firstname = firstName,",
+				"          emailaddress1 = email,",
+				"          eet_extendkey = extendkey",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

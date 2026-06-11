@@ -1,0 +1,25 @@
+{
+	"name": "ds_iddev_dynamicscrm",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "IDDEMOCRMDynamics",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"EntityName": {
+				"type": "string",
+				"defaultValue": "product"
+			}
+		},
+		"annotations": [],
+		"type": "DynamicsCrmEntity",
+		"schema": [],
+		"typeProperties": {
+			"entityName": {
+				"value": "@dataset().EntityName",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,13 @@
+{
+	"name": "RestService1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "RestService",
+		"typeProperties": {
+			"url": "https://iddep-awfcgwgrf2bnekev.eastus2-01.azurewebsites.net",
+			"enableServerCertificateValidation": true,
+			"authenticationType": "Anonymous"
+		}
+	}
+}

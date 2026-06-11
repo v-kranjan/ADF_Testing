@@ -1,0 +1,13 @@
+{
+	"name": "LS_ID_DEMO_FabricLakehouse",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "LS_ID_DEMO_FabricLakehouse",
+			"type": "LinkedServiceReference"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

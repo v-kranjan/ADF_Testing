@@ -1,0 +1,103 @@
+{
+	"name": "DF_Contacts_ID_DEMO",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "LS_ID_DEMO_FabricLakehouse",
+						"type": "DatasetReference"
+					},
+					"name": "GetContacts",
+					"description": "Import data from DS_ID_DEMO_FabricLakehouse"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_id_demo_dynamicscrm",
+						"type": "DatasetReference"
+					},
+					"name": "GetAccountID"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_id_demo_dynamicscrm",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "join1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          CustomerCode as string,",
+				"          ContactCode as string,",
+				"          firstname as string,",
+				"          lastname as string,",
+				"          eet_syncwithextend as integer,",
+				"          emailaddress1 as string,",
+				"          eet_extendcompany as integer,",
+				"          statecode as integer,",
+				"          fullname as string,",
+				"          eet_extendkey as string,",
+				"          eet_contactcode as string,",
+				"          CompanyID as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT CustomerCode, ContactCode, FirstName AS firstname, LastName AS lastname, Email AS emailaddress1, 100 AS eet_extendcompany, 0 AS statecode,  concat(FirstName, \\' \\', LastName) AS fullname, concat(trim(CustomerCode), \\'-\\', trim(ContactCode)) AS eet_extendkey, substring(concat(trim(CustomerCode), \\'-\\', trim(ContactCode)),0,9) AS eet_contactcode, CompanyID from dimcontactbybusinesspartner WHERE trim(CompanyID) = \\'01DEM\\' and trim(FirstName) not like \\'.%\\'   AND CustomerCode not like \\'.%\\'     ',",
+				"     format: 'query',",
+				"     booleanFormat: ['true', 'false']) ~> GetContacts",
+				"source(output(",
+				"          {@odata.etag} as string,",
+				"          accountid as string,",
+				"          accountnumber as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: '<fetch>\\n   <entity name=\"account\">\\n       <attribute name=\"accountid\" />\\n       <attribute name=\"accountnumber\" />\\n \\n   </entity>\\n</fetch>\\n') ~> GetAccountID",
+				"join1 alterRow(upsertIf(true())) ~> AlterRow1",
+				"AlterRow1 derive({parentcustomerid_account@odata.bind} = \"/accounts(\" + accountid+ \")\",",
+				"          eet_syncwithextend = true()) ~> derivedColumn1",
+				"GetContacts, GetAccountID join(CustomerCode == accountnumber,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     alternateKeyName: 'eet_contacts_key',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          {parentcustomerid_account@odata.bind},",
+				"          fullname,",
+				"          eet_contactcode,",
+				"          lastname,",
+				"          eet_extendkey,",
+				"          firstname,",
+				"          emailaddress1,",
+				"          eet_extendcompany,",
+				"          eet_syncwithextend",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

@@ -1,0 +1,230 @@
+{
+	"name": "Dataflow",
+	"properties": {
+		"activities": [
+			{
+				"name": "Data flow1",
+				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Equip_ProductCategory",
+						"type": "DataFlowReference",
+						"parameters": {
+							"Token": "'ff'"
+						},
+						"datasetParameters": {
+							"GetProductCategoryIdFromCRM": {
+								"EntityName": "eet_productcategory"
+							},
+							"GetproductIDfromProduct": {
+								"EntityName": "product"
+							},
+							"sink1": {
+								"EntityName": "product"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Update SoldToRole",
+				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Data flow1",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Address_SoldToRole",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"GetCustomerAddressIdFromCRM": {
+								"EntityName": "customeraddress"
+							},
+							"sink1": {
+								"EntityName": "customeraddress"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "ListPrice",
+				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Update SoldToRole",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Equip_ListPrice",
+						"type": "DataFlowReference",
+						"parameters": {
+							"Token": "'o'"
+						},
+						"datasetParameters": {
+							"GetproductIDfromProduct": {
+								"EntityName": "product"
+							},
+							"sink1": {
+								"EntityName": "eet_listprice"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Equipment Parent Update",
+				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "ListPrice",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Equip_Parent",
+						"type": "DataFlowReference",
+						"parameters": {
+							"Token": "'o'"
+						},
+						"datasetParameters": {
+							"GetproductIDfromProduct": {
+								"EntityName": "product"
+							},
+							"sink1": {
+								"EntityName": "product"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "Equip item associations",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "Equipment Parent Update",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Equip_ItemAssociations",
+						"type": "DataFlowReference",
+						"parameters": {
+							"Token": {
+								"value": "'@{'o'}'",
+								"type": "Expression"
+							}
+						},
+						"datasetParameters": {
+							"GetProductFromCRM": {
+								"EntityName": "product"
+							},
+							"GetproductIDfromProduct": {
+								"EntityName": "product"
+							},
+							"sink1": {
+								"EntityName": "eet_itemassociations"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Data Pipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-09-04T08:21:14Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

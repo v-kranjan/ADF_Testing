@@ -1,0 +1,82 @@
+{
+	"name": "PartsAging",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "extractfiles",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TenantID": {
+				"type": "string",
+				"defaultValue": "REV"
+			}
+		},
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Datasets"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "FactPartsAging.txt",
+				"folderPath": {
+					"value": "@dataset().TenantID",
+					"type": "Expression"
+				},
+				"container": "extractfiles"
+			},
+			"columnDelimiter": "\t",
+			"escapeChar": "\\",
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

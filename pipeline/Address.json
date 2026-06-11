@@ -1,0 +1,51 @@
+{
+	"name": "Address",
+	"properties": {
+		"activities": [
+			{
+				"name": "Data flow1",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Address",
+						"type": "DataFlowReference",
+						"parameters": {
+							"Token": "'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IklEMUdXRDdEQTJNMTREMzZBQiRZVUkyMzREOVVKMjM0NUYkS0owOSJ9.eyJqdGkiOiI5ZjZlNWE4MS05NzU2LTRmYzYtOWVkNy02MjljNDVjZDRiODMiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IklEIiwiZXhwIjoxNzU0ODQ4NzM0LCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjU2ODY2LyIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NTY4NjYvIn0.RkZejJyCiUt0lPXff4zUW4XmRZlSnrmqVr1l9-XH2IE'"
+						},
+						"datasetParameters": {
+							"GetAddressFromAPI": {
+								"Name": "GetAddress"
+							},
+							"GetAccountIDFromCRM": {
+								"EntityName": "account"
+							},
+							"sink1": {
+								"EntityName": "customeraddress"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Data Pipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-08-10T16:09:43Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

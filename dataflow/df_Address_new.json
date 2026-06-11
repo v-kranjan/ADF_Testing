@@ -1,0 +1,60 @@
+{
+	"name": "df_Address_new",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference"
+					},
+					"name": "source1"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "alterRow1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          {@odata.etag} as string,",
+				"          customeraddressid as string,",
+				"          eet_deliveryaddress as string,",
+				"          eet_extendcompany as string,",
+				"          eet_invoiceaddress as string,",
+				"          line1 as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: '<fetch>\\n   <entity name=\"customeraddress\">\\n        <attribute name=\"customeraddressid\" />       \\n        <attribute name=\"eet_extendcompany\" />\\n        <attribute name=\"eet_deliveryaddress\" />\\n        <attribute name=\"eet_invoiceaddress\" />\\n        <attribute name=\"line1\" />  \\n        <filter type=\"and\">\\n<condition attribute=\"eet_extendcompany\" operator=\"not-null\" />\\n            <condition attribute=\"line1\" operator=\"not-null\" />\\n        </filter>\\n   </entity>\\n</fetch>\\n') ~> source1",
+				"source1 derive(invoiceaddress = iif(eet_invoiceaddress == \"false\", \"true\", eet_invoiceaddress),",
+				"          deliveryaddress = iif(eet_deliveryaddress == \"false\", \"true\", eet_deliveryaddress),",
+				"          extendcompany = iif(isNull(eet_extendcompany), \"100\", eet_extendcompany)) ~> derivedColumn1",
+				"derivedColumn1 alterRow(updateIf(isNull(eet_extendcompany))) ~> alterRow1",
+				"alterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:true,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:false,",
+				"     alternateKeyName: 'crdb8_addressid',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true) ~> sink1"
+			]
+		}
+	}
+}

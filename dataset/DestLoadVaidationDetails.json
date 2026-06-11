@@ -1,0 +1,95 @@
+{
+	"name": "DestLoadVaidationDetails",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabaseAudit",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"SchemaName": {
+				"type": "string",
+				"defaultValue": "dbo"
+			}
+		},
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Datasets"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "KeyCol",
+				"type": "bigint",
+				"precision": 19
+			},
+			{
+				"name": "Code",
+				"type": "varchar"
+			},
+			{
+				"name": "ModuleName",
+				"type": "varchar"
+			},
+			{
+				"name": "TransactionType",
+				"type": "varchar"
+			},
+			{
+				"name": "DocNumber",
+				"type": "varchar"
+			},
+			{
+				"name": "FSTCode",
+				"type": "varchar"
+			},
+			{
+				"name": "Loaddate",
+				"type": "date"
+			},
+			{
+				"name": "eXtendValue",
+				"type": "decimal",
+				"precision": 30,
+				"scale": 4
+			},
+			{
+				"name": "Company",
+				"type": "varchar"
+			},
+			{
+				"name": "Sequence",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Position",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ValidationField",
+				"type": "varchar"
+			},
+			{
+				"name": "DWValue",
+				"type": "decimal",
+				"precision": 30,
+				"scale": 4
+			},
+			{
+				"name": "Variance",
+				"type": "decimal",
+				"precision": 20,
+				"scale": 4
+			}
+		],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().SchemaName",
+				"type": "Expression"
+			},
+			"table": "LoadValidationDetails"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,194 @@
+{
+	"name": "Source_Accounts",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "extractfiles",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TenantID": {
+				"type": "string",
+				"defaultValue": "TEST"
+			},
+			"FSTCode": {
+				"type": "string",
+				"defaultValue": "BIFACT"
+			}
+		},
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Datasets"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "DimAccount.txt",
+				"folderPath": {
+					"value": "@concat(dataset().TenantID,'/',dataset().FSTCode)",
+					"type": "Expression"
+				},
+				"container": "extractfiles"
+			},
+			"columnDelimiter": "\t",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": ""
+		},
+		"schema": [
+			{
+				"name": "AcctNumber",
+				"type": "String"
+			},
+			{
+				"name": "AcctName",
+				"type": "String"
+			},
+			{
+				"name": "AcctType",
+				"type": "String"
+			},
+			{
+				"name": "AcctGroup1",
+				"type": "String"
+			},
+			{
+				"name": "AcctGroup2",
+				"type": "String"
+			},
+			{
+				"name": "AcctGroup3",
+				"type": "String"
+			},
+			{
+				"name": "AcctGroup4",
+				"type": "String"
+			},
+			{
+				"name": "AcctGroup5",
+				"type": "String"
+			},
+			{
+				"name": "AcctGroup6",
+				"type": "String"
+			},
+			{
+				"name": "AcctGroup7",
+				"type": "String"
+			},
+			{
+				"name": "SubTotal",
+				"type": "String"
+			},
+			{
+				"name": "SortOrder",
+				"type": "String"
+			},
+			{
+				"name": "CompanyNumber",
+				"type": "String"
+			},
+			{
+				"name": "FSTCode",
+				"type": "String"
+			},
+			{
+				"name": "Dim1 From Key",
+				"type": "String"
+			},
+			{
+				"name": "Dim1 to Key",
+				"type": "String"
+			},
+			{
+				"name": "Dim 2 from Key",
+				"type": "String"
+			},
+			{
+				"name": "Dim 2 to key",
+				"type": "String"
+			},
+			{
+				"name": "Dim 3 from key",
+				"type": "String"
+			},
+			{
+				"name": "Dim 3 to key",
+				"type": "String"
+			},
+			{
+				"name": "Dim 4 from key",
+				"type": "String"
+			},
+			{
+				"name": "Dim 4 to key",
+				"type": "String"
+			},
+			{
+				"name": "Dim 5 from key",
+				"type": "String"
+			},
+			{
+				"name": "Dim 5 to key",
+				"type": "String"
+			},
+			{
+				"name": "LongDescription",
+				"type": "String"
+			},
+			{
+				"name": "GroupNo",
+				"type": "String"
+			},
+			{
+				"name": "Line Number",
+				"type": "String"
+			},
+			{
+				"name": "GroupNo2",
+				"type": "String"
+			},
+			{
+				"name": "GroupNo3",
+				"type": "String"
+			},
+			{
+				"name": "GroupNo4",
+				"type": "String"
+			},
+			{
+				"name": "GroupNo5",
+				"type": "String"
+			},
+			{
+				"name": "GroupNo6",
+				"type": "String"
+			},
+			{
+				"name": "GroupNo7",
+				"type": "String"
+			},
+			{
+				"name": "SearchKey",
+				"type": "String"
+			},
+			{
+				"name": "SequenceNumber",
+				"type": "String"
+			},
+			{
+				"name": "SharedCompany",
+				"type": "String"
+			},
+			{
+				"name": "SharedLogisticCompany",
+				"type": "String"
+			},
+			{
+				"name": "ID",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

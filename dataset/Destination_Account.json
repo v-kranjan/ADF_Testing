@@ -1,0 +1,223 @@
+{
+	"name": "Destination_Account",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"SchemaName": {
+				"type": "string",
+				"defaultValue": "dbo"
+			}
+		},
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Datasets"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "DimAccountKey",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "AcctNumber",
+				"type": "varchar"
+			},
+			{
+				"name": "AcctName",
+				"type": "varchar"
+			},
+			{
+				"name": "AcctType",
+				"type": "varchar"
+			},
+			{
+				"name": "AcctGroup1",
+				"type": "varchar"
+			},
+			{
+				"name": "AcctGroup2",
+				"type": "varchar"
+			},
+			{
+				"name": "AcctGroup3",
+				"type": "varchar"
+			},
+			{
+				"name": "AcctGroup4",
+				"type": "varchar"
+			},
+			{
+				"name": "SortOrder",
+				"type": "decimal",
+				"precision": 25,
+				"scale": 0
+			},
+			{
+				"name": "CompanyNumber",
+				"type": "varchar"
+			},
+			{
+				"name": "FSTCode",
+				"type": "varchar"
+			},
+			{
+				"name": "Dim1 From Key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Dim1 to Key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Dim 2 from Key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Dim 2 to key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Dim 3 from key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Dim 3 to key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Dim 4 from key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Dim 4 to key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Dim 5 from key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Dim 5 to key",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ExtractionDate",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "SortNumber",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "LongDescription",
+				"type": "varchar"
+			},
+			{
+				"name": "AcctGroup5",
+				"type": "varchar"
+			},
+			{
+				"name": "AcctGroup6",
+				"type": "varchar"
+			},
+			{
+				"name": "AcctGroup7",
+				"type": "varchar"
+			},
+			{
+				"name": "SubTotal",
+				"type": "varchar"
+			},
+			{
+				"name": "GroupNo",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "Line Number",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "GroupNo2",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "GroupNo3",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "GroupNo4",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "GroupNo5",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "GroupNo6",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "GroupNo7",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "AcctGroup8",
+				"type": "varchar"
+			},
+			{
+				"name": "SearchKey",
+				"type": "varchar"
+			},
+			{
+				"name": "SequenceNumber",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "SharedCompany",
+				"type": "varchar"
+			},
+			{
+				"name": "SharedLogisticCompany",
+				"type": "varchar"
+			},
+			{
+				"name": "ID",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().SchemaName",
+				"type": "Expression"
+			},
+			"table": "DimAccount"
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

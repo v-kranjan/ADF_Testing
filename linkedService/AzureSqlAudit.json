@@ -1,0 +1,16 @@
+{
+	"name": "AzureSqlAudit",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"description": "AzureSqlAudit",
+		"annotations": [],
+		"type": "AzureSqlDatabase",
+		"typeProperties": {
+			"connectionString": ""
+		},
+		"connectVia": {
+			"referenceName": "azurepipelinerun",
+			"type": "IntegrationRuntimeReference"
+		}
+	}
+}

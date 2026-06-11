@@ -1,0 +1,84 @@
+{
+	"name": "DF_UpdateOrderNumber",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference"
+					},
+					"name": "GetQuoteIDsFromCRM"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_ID_FabricLakehouse",
+						"type": "DatasetReference"
+					},
+					"name": "GetOrderNumbersFromBI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_ID_DynamicsCRM",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateOrderNumber"
+				}
+			],
+			"transformations": [
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          {@odata.etag} as string,",
+				"          eet_quote as string,",
+				"          eet_syncstatusid as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: '<fetch>\\n  <entity name=\"eet_syncstatus\">\\n    <attribute name=\"eet_quote\" />\\n    <attribute name=\"eet_ordernumber\" />\\n    <filter type=\"or\">\\n      <condition attribute=\"eet_ordernumber\" operator=\"null\" />\\n      <condition attribute=\"eet_ordernumber\" operator=\"eq\" value=\"\" />\\n    </filter>\\n  </entity>\\n</fetch>\\n\\n') ~> GetQuoteIDsFromCRM",
+				"source(output(",
+				"          ErpCrmID as string,",
+				"          OrderNo as string,",
+				"          OrderDate as date",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: (\"SELECT ErpCrmID, OrderNo, EntryDate OrderDate FROM dimequipmentorder C INNER JOIN crmgatekeeper GK ON C.OrderNo = GK.ProcessedID AND C.CompanyNumber = GK.CompanyID AND C.Division = GK.DivisionID\"),",
+				"     format: 'query') ~> GetOrderNumbersFromBI",
+				"join1 alterRow(updateIf(true())) ~> AlterRow1",
+				"GetQuoteIDsFromCRM, GetOrderNumbersFromBI join(eet_quote == ErpCrmID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"AlterRow1 derive(eet_syncstage = 3) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     alternateKeyName: 'crdb8_quote',",
+				"     mapColumn(",
+				"          eet_quote,",
+				"          eet_ordernumber = OrderNo,",
+				"          eet_ordercreatedon = OrderDate,",
+				"          eet_syncstage",
+				"     )) ~> UpdateOrderNumber"
+			]
+		}
+	}
+}

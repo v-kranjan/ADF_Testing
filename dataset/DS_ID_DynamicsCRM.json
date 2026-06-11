@@ -1,0 +1,25 @@
+{
+	"name": "DS_ID_DynamicsCRM",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "DynamicsCrm",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"EntityName": {
+				"type": "string",
+				"defaultValue": "customeraddress"
+			}
+		},
+		"annotations": [],
+		"type": "DynamicsCrmEntity",
+		"schema": [],
+		"typeProperties": {
+			"entityName": {
+				"value": "@dataset().EntityName",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,112 @@
+{
+	"name": "DF_Equip_Manufacturer_DEV",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DS_ID_FabricLakehouse",
+						"type": "DatasetReference"
+					},
+					"name": "GetUnitNumber"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_iddev_dynamicscrm",
+						"type": "DatasetReference"
+					},
+					"name": "CrmProduct"
+				},
+				{
+					"dataset": {
+						"referenceName": "ds_iddev_dynamicscrm2",
+						"type": "DatasetReference"
+					},
+					"name": "CrmProductManufacturer"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "ds_iddev_dynamicscrm2",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "join2"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          Unit as string,",
+				"          Manufacturer as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: 'SELECT DISTINCT TRIM(UnitNumber) Unit, TRIM(Manufacturer) Manufacturer FROM dimequipment WHERE trim(CompanyID)= \\'01DEP\\' AND trim(Manufacturer) <> \\'\\'',",
+				"     format: 'query',",
+				"     booleanFormat: ['true', 'false']) ~> GetUnitNumber",
+				"source(output(",
+				"          {@odata.etag} as string,",
+				"          eet_extendcompany as string,",
+				"          eet_extendkey as string,",
+				"          eet_unitnumber as string,",
+				"          productid as string,",
+				"          productnumber as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: '<fetch>\\n   <entity name=\"product\">\\n       <attribute name=\"productid\" />\\n       <attribute name=\"productnumber\" />\\n       <attribute name=\"eet_unitnumber\" />\\n       <attribute name=\"eet_extendcompany\" />\\n       <attribute name=\"eet_extendkey\" />\\n       <filter type=\"and\">\\n           <condition attribute=\"eet_unitnumber\" operator=\"not-null\" />\\n           <condition attribute=\"productnumber\" operator=\"not-null\" />\\n       </filter>\\n       <filter type=\"or\">\\n        <condition attribute=\"producttypecode\" operator=\"eq\" value=\"200000\" />\\n        <condition attribute=\"producttypecode\" operator=\"eq\" value=\"200001\" />\\n      </filter>\\n\\n   </entity>\\n</fetch>') ~> CrmProduct",
+				"source(output(",
+				"          {@odata.etag} as string,",
+				"          eet_code as string,",
+				"          eet_manufacturerid as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: '<fetch>\\n   <entity name=\"eet_manufacturer\">\\n       <attribute name=\"eet_manufacturerid\" />\\n       <attribute name=\"eet_code\" />\\n   </entity>\\n</fetch>') ~> CrmProductManufacturer",
+				"join2 alterRow(upsertIf(true())) ~> AlterRow1",
+				"AlterRow1 derive({eet_productcategoryid@odata.bind} = \"/eet_manufacturers(\" + eet_manufacturerid + \")\") ~> derivedColumn1",
+				"GetUnitNumber, CrmProductManufacturer join(Manufacturer == eet_code,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"join1, CrmProduct join(Unit == eet_unitnumber,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join2",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     alternateKeyName: 'eet_product_key',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          {eet_productcategoryid@odata.bind},",
+				"          productnumber,",
+				"          eet_extendcompany,",
+				"          eet_extendkey",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

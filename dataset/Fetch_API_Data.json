@@ -1,0 +1,27 @@
+{
+	"name": "Fetch_API_Data",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "RestService1",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"Name": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Datasets"
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": {
+				"value": "@concat('/Common/', dataset().Name,'?TenantCode=ID&CompanyId=01&PageSize=50000&PageNumber=1')",
+				"type": "Expression"
+			}
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

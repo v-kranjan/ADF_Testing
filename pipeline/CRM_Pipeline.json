@@ -1,0 +1,1034 @@
+{
+	"name": "CRM_Pipeline",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Bearer Token",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": "https://iddep-awfcgwgrf2bnekev.eastus2-01.azurewebsites.net/User/Authenticate",
+					"body": {
+						"tenantCode": "ID",
+						"clientId": "BIAPI-1e3a4db2cee11ed02fc22c062e30d462bf27e480",
+						"clientSecret": "ff774c817c9fc7e9b381f9bacf88a9075bbd85fertui"
+					}
+				}
+			},
+			{
+				"name": "Load Data into Account Entity",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": {
+								"value": "Bearer @{activity('Get Bearer Token').output.jwtToken}",
+								"type": "Expression"
+							}
+						},
+						"paginationRules": {
+							"AbsoluteUrl.{pageNumber}": "RANGE:1::",
+							"EndCondition:$.more": "Const:false"
+						}
+					},
+					"sink": {
+						"type": "DynamicsCrmSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": {
+							"value": "@variables('Account_AlternateKey')",
+							"type": "Expression"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['accountnumber']"
+								},
+								"sink": {
+									"name": "accountnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['name']"
+								},
+								"sink": {
+									"name": "name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['address1_city']"
+								},
+								"sink": {
+									"name": "address1_city",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['address1_country']"
+								},
+								"sink": {
+									"name": "address1_country",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['address1_county']"
+								},
+								"sink": {
+									"name": "address1_county",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['address1_fax']"
+								},
+								"sink": {
+									"name": "address1_fax",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['address1_line1']"
+								},
+								"sink": {
+									"name": "address1_line1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['address1_postalcode']"
+								},
+								"sink": {
+									"name": "address1_postalcode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['address1_stateorprovince']"
+								},
+								"sink": {
+									"name": "address1_stateorprovince",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['address1_telephone1']"
+								},
+								"sink": {
+									"name": "address1_telephone1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['creditlimit']"
+								},
+								"sink": {
+									"name": "creditlimit",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"path": "['emailaddress1']"
+								},
+								"sink": {
+									"name": "emailaddress1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['fax']"
+								},
+								"sink": {
+									"name": "fax",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['telephone3']"
+								},
+								"sink": {
+									"name": "telephone3",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['eet_oldcustomercode']"
+								},
+								"sink": {
+									"name": "eet_oldcustomercode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['eet_oldsuppliercode']"
+								},
+								"sink": {
+									"name": "eet_oldsuppliercode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['accountcategorycode']"
+								},
+								"sink": {
+									"name": "eet_soldtorole",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"path": "['aging30_base']"
+								},
+								"sink": {
+									"name": "eet_extendcompany",
+									"type": "Int32"
+								}
+							}
+						],
+						"collectionReference": "$['data']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Fetch_Customers",
+						"type": "DatasetReference",
+						"parameters": {
+							"Name": "GetCustomers"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference",
+						"parameters": {
+							"EntityName": "account"
+						}
+					}
+				]
+			},
+			{
+				"name": "Load Data into Product Entity",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Get Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": {
+								"value": "Bearer @{activity('Get Bearer Token').output.jwtToken}",
+								"type": "Expression"
+							}
+						},
+						"paginationRules": {
+							"AbsoluteUrl.{pageNumber}": "RANGE:1::",
+							"EndCondition:$.more": "Const:false"
+						}
+					},
+					"sink": {
+						"type": "DynamicsCrmSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": {
+							"value": "@variables('Product_AlternateKey')",
+							"type": "Expression"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['make']"
+								},
+								"sink": {
+									"name": "eet_make",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['model']"
+								},
+								"sink": {
+									"name": "eet_modelcode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['name']"
+								},
+								"sink": {
+									"name": "eet_fullname",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['newOrUsed']"
+								},
+								"sink": {
+									"name": "eet_neworused",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"path": "['unitNo']"
+								},
+								"sink": {
+									"name": "eet_unitnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['vin']"
+								},
+								"sink": {
+									"name": "eet_vehicleidentificationnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['year']"
+								},
+								"sink": {
+									"name": "eet_makeyear",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['ownerShipstatus']"
+								},
+								"sink": {
+									"name": "eet_ownershipstatus",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"path": "['specificationText']"
+								},
+								"sink": {
+									"name": "name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['serialNumber']"
+								},
+								"sink": {
+									"name": "eet_serialno",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['fleetStatus']"
+								},
+								"sink": {
+									"name": "statecode",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"path": "['equipmentType']"
+								},
+								"sink": {
+									"name": "producttypecode",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"path": "['manufacturer']"
+								},
+								"sink": {
+									"name": "eet_manufacturer",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['physicalStatus']"
+								},
+								"sink": {
+									"name": "eet_physicalstatus",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"path": "['price']"
+								},
+								"sink": {
+									"name": "price",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"path": "['businessUnit']"
+								},
+								"sink": {
+									"name": "eet_businessunit",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['decimalsSupported']"
+								},
+								"sink": {
+									"name": "quantitydecimal",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"path": "['defaultUnit']"
+								},
+								"sink": {
+									"name": "defaultuomid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['organizationId']"
+								},
+								"sink": {
+									"name": "organizationid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['unitGroup']"
+								},
+								"sink": {
+									"name": "defaultuomscheduleid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['stockItem']"
+								},
+								"sink": {
+									"name": "isstockitem",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"path": "['defaultPriceList']"
+								},
+								"sink": {
+									"name": "pricelevelid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['standardCost']"
+								},
+								"sink": {
+									"name": "standardcost",
+									"type": "Decimal"
+								}
+							}
+						],
+						"collectionReference": "$['data']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Fetch_Customers",
+						"type": "DatasetReference",
+						"parameters": {
+							"Name": "GetVehicles"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference",
+						"parameters": {
+							"EntityName": "product"
+						}
+					}
+				]
+			},
+			{
+				"name": "Load Data into Price List Item",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Get Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": {
+								"value": "Bearer @{activity('Get Bearer Token').output.jwtToken}",
+								"type": "Expression"
+							}
+						},
+						"paginationRules": {
+							"AbsoluteUrl.{pageNumber}": "RANGE:1::",
+							"EndCondition:$.more": "Const:false"
+						}
+					},
+					"sink": {
+						"type": "DynamicsCrmSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": {
+							"value": "@variables('productpricelevel_AK')",
+							"type": "Expression"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['unitNo']"
+								},
+								"sink": {
+									"name": "productid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['assetName']"
+								},
+								"sink": {
+									"name": "pricelevelid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['salesOrderNumber']"
+								},
+								"sink": {
+									"name": "organizationid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['price']"
+								},
+								"sink": {
+									"name": "amount",
+									"type": "Decimal"
+								}
+							}
+						],
+						"collectionReference": "$['data']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Fetch_Customers",
+						"type": "DatasetReference",
+						"parameters": {
+							"Name": "GetVehicles"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference",
+						"parameters": {
+							"EntityName": "productpricelevel"
+						}
+					}
+				]
+			},
+			{
+				"name": "Load Data into Address",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Get Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": {
+								"value": "Bearer @{activity('Get Bearer Token').output.jwtToken}",
+								"type": "Expression"
+							}
+						},
+						"paginationRules": {
+							"AbsoluteUrl.{pageNumber}": "RANGE:1::",
+							"EndCondition:$.more": "Const:false"
+						}
+					},
+					"sink": {
+						"type": "DynamicsCrmSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": {
+							"value": "@variables('address')",
+							"type": "Expression"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['addressCode']"
+								},
+								"sink": {
+									"name": "addressnumber",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"path": "['addressName']"
+								},
+								"sink": {
+									"name": "name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['city']"
+								},
+								"sink": {
+									"name": "city",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['postalZipCode']"
+								},
+								"sink": {
+									"name": "postalcode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['stateCode']"
+								},
+								"sink": {
+									"name": "stateorprovince",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['appartmentNumber']"
+								},
+								"sink": {
+									"name": "eet_extendcompany",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"path": "['country']"
+								},
+								"sink": {
+									"name": "parentid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['phone']"
+								},
+								"sink": {
+									"name": "telephone1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['fax']"
+								},
+								"sink": {
+									"name": "fax",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['data']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Fetch_Customers",
+						"type": "DatasetReference",
+						"parameters": {
+							"Name": "GetAddress"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference",
+						"parameters": {
+							"EntityName": "customeraddress"
+						}
+					}
+				]
+			},
+			{
+				"name": "Load Data into ProductModel Entity",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Get Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": {
+								"value": "Bearer @{activity('Get Bearer Token').output.jwtToken}",
+								"type": "Expression"
+							}
+						},
+						"paginationRules": {
+							"AbsoluteUrl.{pageNumber}": "RANGE:1::",
+							"EndCondition:$.more": "Const:false"
+						}
+					},
+					"sink": {
+						"type": "DynamicsCrmSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['make']"
+								},
+								"sink": {
+									"name": "eet_make",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['accountID']"
+								},
+								"sink": {
+									"name": "eet_extendcompany",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"path": "['productid']"
+								},
+								"sink": {
+									"name": "productid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['model']"
+								},
+								"sink": {
+									"name": "eet_modelcode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['name']"
+								},
+								"sink": {
+									"name": "eet_fullname",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['unitNo']"
+								},
+								"sink": {
+									"name": "eet_unitnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['year']"
+								},
+								"sink": {
+									"name": "eet_makeyear",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['equipmentType']"
+								},
+								"sink": {
+									"name": "producttypecode",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"path": "['businessUnit']"
+								},
+								"sink": {
+									"name": "eet_businessunit",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['decimalsSupported']"
+								},
+								"sink": {
+									"name": "quantitydecimal",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"path": "['defaultUnit']"
+								},
+								"sink": {
+									"name": "defaultuomid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['organizationId']"
+								},
+								"sink": {
+									"name": "organizationid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['unitGroup']"
+								},
+								"sink": {
+									"name": "defaultuomscheduleid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['stockItem']"
+								},
+								"sink": {
+									"name": "isstockitem",
+									"type": "Boolean"
+								}
+							}
+						],
+						"collectionReference": "$['data']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Fetch_Customers",
+						"type": "DatasetReference",
+						"parameters": {
+							"Name": "GetVehicles"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference",
+						"parameters": {
+							"EntityName": "product"
+						}
+					}
+				]
+			}
+		],
+		"variables": {
+			"Account_AlternateKey": {
+				"type": "String",
+				"defaultValue": "new_acctnumber"
+			},
+			"Product_AlternateKey": {
+				"type": "String",
+				"defaultValue": "crdb8_productid"
+			},
+			"productpricelevel_AK": {
+				"type": "String",
+				"defaultValue": "crdb8_pricelevelid"
+			},
+			"address": {
+				"type": "String",
+				"defaultValue": "crdb8_addressid"
+			}
+		},
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Data Pipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-08-13T04:48:09Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

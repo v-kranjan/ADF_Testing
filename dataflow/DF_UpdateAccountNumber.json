@@ -1,0 +1,83 @@
+{
+	"name": "DF_UpdateAccountNumber",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference"
+					},
+					"name": "GetProspectAccountsFromCRM"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_ID_FabricLakehouse",
+						"type": "DatasetReference"
+					},
+					"name": "GetAccountNumbersFromBI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_ID_DynamicsCRM",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateAccountNumber"
+				}
+			],
+			"transformations": [
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "join1"
+				},
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          {@odata.etag} as string,",
+				"          accountid as string,",
+				"          eet_accounttype as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: '<fetch>\\n  <entity name=\"account\">\\n    <attribute name=\"accountid\" />\\n    <attribute name=\"accountnumber\" />\\n    <attribute name=\"eet_accounttype\" />\\n    <attribute name=\"eet_syncwithextend\" />\\n\\n    <filter type=\"and\">\\n      <condition attribute=\"accountnumber\" operator=\"null\" />\\n       <condition attribute=\"eet_accounttype\" operator=\"eq\" value=\"276040004\" />\\n    </filter>\\n  </entity>\\n</fetch>') ~> GetProspectAccountsFromCRM",
+				"source(output(",
+				"          ErpCrmID as string,",
+				"          accountnumber as string,",
+				"          eet_accounttype as integer",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: (\"SELECT GK.ErpCrmID, GK.ProcessedID AS accountnumber, 276040000 AS eet_accounttype FROM dimcustomer C INNER JOIN crmgatekeeper GK ON C.CustomerCode  = GK.ProcessedID AND C.CompanyNumber = GK.CompanyID AND C.DivisionID = GK.DivisionID WHERE GK.EntryType = 'CUSTOMER'\"),",
+				"     format: 'query') ~> GetAccountNumbersFromBI",
+				"join1 alterRow(updateIf(true())) ~> AlterRow1",
+				"GetProspectAccountsFromCRM, GetAccountNumbersFromBI join(accountid == ErpCrmID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> join1",
+				"AlterRow1 derive(eet_syncwithextend = false()) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     mapColumn(",
+				"          accountid,",
+				"          accountnumber,",
+				"          eet_accounttype = GetAccountNumbersFromBI@eet_accounttype,",
+				"          eet_syncwithextend",
+				"     )) ~> UpdateAccountNumber"
+			]
+		}
+	}
+}

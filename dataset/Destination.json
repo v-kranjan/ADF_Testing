@@ -1,0 +1,88 @@
+{
+	"name": "Destination",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "AzureSqlDatabase1",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TableName": {
+				"type": "string"
+			},
+			"SchemaName": {
+				"type": "string",
+				"defaultValue": "dbo"
+			}
+		},
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Datasets"
+		},
+		"annotations": [],
+		"type": "AzureSqlTable",
+		"schema": [
+			{
+				"name": "DimFinKey",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "DimFinParentKey",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "DimID",
+				"type": "varchar"
+			},
+			{
+				"name": "DimDescription",
+				"type": "varchar"
+			},
+			{
+				"name": "DimSublevel",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "DimParentNum",
+				"type": "varchar"
+			},
+			{
+				"name": "CompanyNumber",
+				"type": "varchar"
+			},
+			{
+				"name": "ExtractionDate",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "DimRangeKey",
+				"type": "int",
+				"precision": 10
+			},
+			{
+				"name": "ModifiedDate",
+				"type": "datetime",
+				"precision": 23,
+				"scale": 3
+			},
+			{
+				"name": "ID",
+				"type": "varchar"
+			}
+		],
+		"typeProperties": {
+			"schema": {
+				"value": "@dataset().SchemaName",
+				"type": "Expression"
+			},
+			"table": {
+				"value": "@dataset().TableName",
+				"type": "Expression"
+			}
+		}
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

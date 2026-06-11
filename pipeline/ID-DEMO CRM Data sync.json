@@ -1,0 +1,2081 @@
+{
+	"name": "ID-DEMO CRM Data sync",
+	"properties": {
+		"activities": [
+			{
+				"name": "Copy Accounts",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT \n    TRIM(A.CustomerCode)        AS accountnumber\n    , A.CustomerName            AS name\n    , A.CustomerCity            AS address1_city\n    , A.CustomerCounty          AS address1_county\n    , A.CustomerCountry         AS address1_country\n    , A.Fax                     AS address1_fax\n    , A.CustomerAddress1        AS address1_line1\n    , A.CustomerZipCode         AS address1_postalcode\n    , A.CustomerStateProvince   AS address1_stateorprovince\n    , A.Telephone               AS address1_telephone1\n    , A.TotalCreditLimit        AS creditlimit\n    , A.[E-mail]                AS emailaddress1\n    , 100                       AS eet_extendcompany \n    , TRIM(A.CustomerCode)      AS eet_extendkey\n    , CONCAT (TRIM(A.CustomerCode),'-', LEFT(A.CompanyNumber,2), '-', LEFT(A.DivisionID,2)) AS address1_name\n    , A.Fax                     AS fax\n    , CASE WHEN A.CustomerStatus = 'Active' THEN 0 ELSE 1 END AS statecode\n    , TRY_CONVERT(date, A.[Creation_Date]) AS createdon\n    , TRY_CONVERT(date, A.[ModificationDate]) AS modifiedon\n    , CASE WHEN A.CustomerStatus = 'Active' THEN '276040000' \n           WHEN A.CustomerStatus = 'Prospect' THEN '276040002' \n           WHEN A.CustomerStatus = 'Deleted' THEN '276040001' \n      END AS eet_accounttype\n    , 1 AS address1_addresstypecode\n    , 'true' AS eet_soldtorole\n    , 'false' AS eet_shipto\n    , 'true' AS eet_soldto\n    , 'true' AS eet_invoiceto\nFROM dimcustomer A \nWHERE A.CompanyNumber = '01DEM' \n  AND A.DivisionID = '01-01DEM'\n  AND A.CustomerName NOT LIKE '%' + CHAR(26) + '%'\n--AND TRY_CONVERT(date, A.[ModificationDate]) > DATEADD(DAY, -30, GETDATE())",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DynamicsCrmSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": "eet_account_key",
+						"bypassPowerAutomateFlows": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "accountnumber",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "accountnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "address1_addresstypecode",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "address1_addresstypecode",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "address1_city",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "address1_city",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "address1_country",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "address1_country",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "address1_county",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "address1_county",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "address1_fax",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "address1_fax",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "address1_line1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "address1_line1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "address1_name",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "address1_name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "address1_postalcode",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "address1_postalcode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "address1_stateorprovince",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "address1_stateorprovince",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "address1_telephone1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "address1_telephone1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "createdon",
+									"type": "Date",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "createdon",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "creditlimit",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "creditlimit",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_accounttype",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_accounttype",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_extendcompany",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "eet_extendcompany",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_extendkey",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_extendkey",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_invoiceto",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_invoiceto",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_shipto",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_shipto",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_soldto",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_soldto",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_soldtorole",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_soldtorole",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "emailaddress1",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "emailaddress1",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "fax",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "fax",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "modifiedon",
+									"type": "Date",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "modifiedon",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "name",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "statecode",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "statecode",
+									"type": "Int32"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LS_ID_DEMO_FabricLakehouse",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_id_demo_dynamicscrm",
+						"type": "DatasetReference"
+					}
+				]
+			},
+			{
+				"name": "Copy products",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Copy Accounts",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT \r\n\t'983A3ED3-D3D8-F011-8543-000D3A352AC1' AS eet_businessunit,\r\n    2 AS quantitydecimal,\r\n    'b2f82e2d-98ab-46b5-9577-600f4567fcb7 ' AS defaultuomid,\r\n    '87f51c15-74f0-f011-aa23-6045bd003931' AS organizationid,\r\n    '7a222c89-e501-4949-a7bb-99ce64f9b6a6' AS defaultuomscheduleid,\r\n    'true' AS isstockitem,\r\n    '0' AS statecode,\r\n    -- '6da8bced-935d-f111-a825-6045bd0484dd' AS pricelevelid,\r\n    '6da8bced-935d-f111-a825-6045bd0484dd' AS pricelevelid,\r\n\tCONCAT(UnitNumber, '_', LEFT(CompanyID, 2)) AS productnumber,\r\n    CONCAT(UnitNumber, '_', LEFT(CompanyID, 2)) AS eet_derivedproductnumber,\r\n    TRIM(UnitNumber) AS eet_extendkey,\r\n    100 AS eet_extendcompany,\r\n\t--1 productstructure,\r\n    TRIM(UnitNumber) AS eet_unitnumber,\r\n    Manufacturer AS eet_make,\r\n    TRIM(Model) AS eet_modelcode,\r\n    ProductCategoryName eet_quipwareproductcategory,\r\n    TRIM(UnitDescription) AS eet_fullname,\r\n    CASE WHEN Used = 'Used' THEN 'true' WHEN Used = 'New' THEN 'false' ELSE 'false' END AS eet_neworused,\r\n    --TRY_CONVERT(date, SalesInvoiceDate) AS eet_purchasedate,\r\n    ModelYear AS eet_makeyear,\r\n    CASE      \r\n        WHEN OwnershipStatus = 'Dealer Owned' THEN 10      \r\n        WHEN OwnershipStatus = 'Customer Stock' THEN 20      \r\n        ELSE NULL      \r\n    END AS eet_ownershipstatus,\r\n    CONCAT(TRIM(Model), '_', Manufacturer) AS name,\r\n    SerialNumber eet_serialno,\r\n    CASE\r\n        WHEN Status = 'Inventory' THEN '276040000'\r\n        WHEN Status = 'Presold' THEN '276040001'\r\n        WHEN Status = 'Rented' THEN '276040002'\r\n        WHEN Status = 'Sold' THEN '276040003'\r\n        WHEN Status = 'Invoiced' THEN '276040003'\r\n        WHEN Status = 'On Order' THEN '276040004'\r\n        WHEN Status = 'Transfer' THEN '276040006'\r\n        ELSE '276040000'\r\n    END AS EquipmentStatus,\r\n    CASE      \r\n        WHEN EquipmentType = 'Model' THEN '200000'      \r\n        WHEN EquipmentType = 'Attachment' THEN '200001'      \r\n        WHEN EquipmentType = 'Option' THEN '200002'      \r\n        ELSE '200000'      \r\n    END AS producttypecode,\r\n    LEFT(ManufacturerName, 10) AS eet_manufacturer,\r\n    TRIM(Model) AS ModelName,\r\n    CASE\r\n        WHEN Status = 'On Order' THEN 1\r\n        WHEN PhysicalStatus = 'Rental' THEN 3      \r\n        WHEN PhysicalStatus = 'In the Branch' THEN 2      \r\n        WHEN PhysicalStatus = 'Demo' THEN 5      \r\n        WHEN PhysicalStatus = 'Loaner' THEN 6      \r\n        WHEN PhysicalStatus IN ('In Transit', 'Being Transferred') THEN 7\r\n        WHEN PhysicalStatus = 'Equipment Sale' THEN 4 \r\n        --WHEN PhysicalStatus = 'Service' THEN 14      \r\n        --WHEN PhysicalStatus = 'Held' THEN 15        \r\n    END AS eet_physicalstatus,\r\n    EquipmentSupplier AS BuyFromBP,\r\n\tTRY_CONVERT(DATE, CreatedDate) AS createdon,\r\n\tTRY_CONVERT(DATE, ModifiedDate) AS modifiedon,\r\n    --TRY_CONVERT(date, [Actual Receipt Date]) AS ActualReceiptDate,\r\n    OriginalSalesPrice AS SalesPrice,\r\n    --[Sales Agreement Customer] AS SoldToCustomer,\r\n    Meter1Reading AS Meter1Hours,\r\n    MinimumSellingPrice,\r\n    Book currentcost,\r\n    ParentUnitNumber eet_parentunit,\r\n    CONCAT(UnitNumber, '_', LEFT(CompanyID, 2)) AS ExternalID,\r\n    Price price,\r\n    UnitDescription AS description,\r\n    --LEFT(CompanyID, 2) AS Company,\r\n    --LEFT(DivisionID, 2) AS Division,\r\n    Cost AS standardcost\r\nFROM      \r\n    dimequipment E  \r\nWHERE       \r\n    CompanyID = '01DEM'\r\n    AND DivisionID = '01-01DEM'\r\n\tAND EquipmentType = 'Model' AND Model <> '' AND SourceSystem= 'Intellidealer';\r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DynamicsCrmSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": "eet_product_key",
+						"bypassPowerAutomateFlows": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "createdon",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "createdon",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "currentcost",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 20
+								},
+								"sink": {
+									"name": "currentcost",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "defaultuomid",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "defaultuomid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "defaultuomscheduleid",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "defaultuomscheduleid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "description",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_businessunit",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_businessunit",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_extendcompany",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_extendcompany",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_extendkey",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_extendkey",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_fullname",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_fullname",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_make",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_make",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_modelcode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_modelcode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_makeyear",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "eet_makeyear",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_manufacturer",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_manufacturer",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_neworused",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "eet_neworused",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_ownershipstatus",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "eet_ownershipstatus",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EquipmentStatus",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "eet_equipmentstatus",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_physicalstatus",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "eet_physicalstatus",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_serialno",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_serialno",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_quipwareproductcategory",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_quipwareproductcategory",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_unitnumber",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_unitnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "isstockitem",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "isstockitem",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "modifiedon",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "modifiedon",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "organizationid",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "organizationid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "price",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 20
+								},
+								"sink": {
+									"name": "price",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "pricelevelid",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "pricelevelid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_derivedproductnumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_derivedproductnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "productnumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "productnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "producttypecode",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "producttypecode",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "quantitydecimal",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "quantitydecimal",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "standardcost",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 20
+								},
+								"sink": {
+									"name": "standardcost",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "statecode",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "statecode",
+									"type": "Int32"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LS_ID_DEMO_FabricLakehouse",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_iddev_dynamicscrm",
+						"type": "DatasetReference",
+						"parameters": {
+							"EntityName": "product"
+						}
+					}
+				]
+			},
+			{
+				"name": "product_Models",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Copy products",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "WITH RankedModels AS\r\n(\r\n    SELECT *,\r\n           ROW_NUMBER() OVER (\r\n               PARTITION BY TRIM(Model)\r\n               ORDER BY ModelYear DESC\r\n           ) AS rn\r\n    FROM dimequipment\r\n    WHERE CompanyID = '01DEM'\r\n    AND DivisionID = '01-01DEM'\r\n      AND TRIM(Model) <> ''\r\n      --AND EquipmentType = 'Model'\r\n)\r\nSELECT \r\n    '983a3ed3-d3d8-f011-8543-000d3a352ac1' AS eet_businessunit,\r\n    2 AS quantitydecimal,\r\n    'b2f82e2d-98ab-46b5-9577-600f4567fcb7' AS defaultuomid,\r\n    '87f51c15-74f0-f011-aa23-6045bd003931' AS organizationid,\r\n    '7a222c89-e501-4949-a7bb-99ce64f9b6a6' AS defaultuomscheduleid,\r\n    'false' AS isstockitem,\r\n    '0' AS statecode,\r\n    '6da8bced-935d-f111-a825-6045bd0484dd' AS pricelevelid,\r\n    CONCAT(TRIM(Model), '_', LEFT(CompanyID, 2)) AS productnumber,\r\n    CONCAT(TRIM(Model), '_', LEFT(CompanyID, 2)) AS eet_derivedproductnumber,\r\n    TRIM(Model) AS eet_extendkey,\r\n    1 AS productstructure,\r\n    TRIM(Model) AS eet_modelcode,\r\n    TRIM(UnitDescription) AS eet_fullname,\r\n    '200000' AS producttypecode,\r\n    '100' AS eet_extendcompany,\r\n    TRIM(Model) AS description,\r\n\tManufacturer AS eet_make,\r\n    ModelYear AS eet_makeyear,\r\n\tCONCAT(TRIM(Model), '_', Manufacturer) AS name,\r\n    LEFT(ManufacturerName, 10) AS eet_manufacturer,\r\n    LEFT(CompanyID, 2) AS Company,\r\n    SUBSTRING(DivisionID, 4, 2) AS Division\r\nFROM RankedModels\r\nWHERE rn = 1;\r\n\r\n\r\n-- WITH RankedModels AS\r\n-- (\r\n--     SELECT *,\r\n--            ROW_NUMBER() OVER (\r\n--                PARTITION BY TRIM(REPLACE(Model, CHAR(0), ''))\r\n--                ORDER BY ModelYear DESC\r\n--            ) AS rn\r\n--     FROM (\r\n--         -- Inner query cleanses the source data strings before processing the partition\r\n--         SELECT \r\n--             *,\r\n--             REPLACE(Model, CHAR(0), '') AS CleanedModel,\r\n--             REPLACE(UnitDescription, CHAR(0), '') AS CleanedUnitDescription\r\n--         FROM dimequipment\r\n--         WHERE CompanyID = '01DEM'\r\n--           AND DivisionID = '01-01DEM'\r\n--           -- AND EquipmentType = 'Model' -- Uncomment if you need to strictly restrict to Model records\r\n--     ) CleanSource\r\n--     WHERE TRIM(CleanedModel) <> ''\r\n-- )\r\n-- SELECT \r\n--     '983a3ed3-d3d8-f011-8543-000d3a352ac1' AS eet_businessunit,\r\n--     2 AS quantitydecimal,\r\n--     'b2f82e2d-98ab-46b5-9577-600f4567fcb7' AS defaultuomid,\r\n--     '87f51c15-74f0-f011-aa23-6045bd003931' AS organizationid,\r\n--     '7a222c89-e501-4949-a7bb-99ce64f9b6a6' AS defaultuomscheduleid,\r\n--     'false' AS isstockitem,\r\n--     '0' AS statecode,\r\n--     '6da8bced-935d-f111-a825-6045bd0484dd' AS pricelevelid,\r\n--     CONCAT(TRIM(CleanedModel), '_', LEFT(CompanyID, 2)) AS productnumber,\r\n--     CONCAT(TRIM(CleanedModel), '_', LEFT(CompanyID, 2)) AS eet_derivedproductnumber,\r\n--     TRIM(CleanedModel) AS eet_extendkey,\r\n--     1 AS productstructure,\r\n--     TRIM(CleanedModel) AS eet_modelcode,\r\n--     TRIM(CleanedUnitDescription) AS eet_fullname,\r\n--     '200000' AS producttypecode,\r\n--     '100' AS eet_extendcompany,\r\n--     TRIM(CleanedModel) AS description, -- Sanitized: No more hexadecimal 0x00 failures\r\n--     Manufacturer AS eet_make,\r\n--     ModelYear AS eet_makeyear,\r\n--     CONCAT(TRIM(CleanedModel), '_', Manufacturer) AS name,\r\n--     LEFT(ManufacturerName, 10) AS eet_manufacturer,\r\n--     LEFT(CompanyID, 2) AS Company,\r\n--     SUBSTRING(DivisionID, 4, 2) AS Division\r\n-- FROM RankedModels\r\n-- WHERE rn = 1;\r\n\r\n-- WITH RankedModels AS\r\n-- (\r\n--     SELECT *,\r\n--            ROW_NUMBER() OVER (\r\n--                PARTITION BY TRIM(Model)\r\n--                ORDER BY ModelYear DESC\r\n--            ) AS rn\r\n--     FROM dimequipment\r\n--     WHERE CompanyID = '01DEM'\r\n--     AND DivisionID = '01-01DEM'\r\n--     AND TRIM(Model) <> ''\r\n-- )\r\n-- SELECT COUNT(*) AS total_model_count\r\n-- FROM RankedModels\r\n-- WHERE rn = 1;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DynamicsCrmSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": "eet_product_key",
+						"bypassPowerAutomateFlows": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "defaultuomid",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "defaultuomid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "defaultuomscheduleid",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "defaultuomscheduleid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "description",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_businessunit",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_businessunit",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_extendcompany",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_extendcompany",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_make",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_make",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_fullname",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_fullname",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_modelcode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_modelcode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_makeyear",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "eet_makeyear",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_manufacturer",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_manufacturer",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "isstockitem",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "isstockitem",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "organizationid",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "organizationid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_derivedproductnumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_derivedproductnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "productnumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "productnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "productstructure",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "productstructure",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "producttypecode",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "producttypecode",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "quantitydecimal",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "quantitydecimal",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "statecode",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "statecode",
+									"type": "Int32"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LS_ID_DEMO_FabricLakehouse",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_id_demo_dynamicscrm",
+						"type": "DatasetReference",
+						"parameters": {
+							"EntityName": "product"
+						}
+					}
+				]
+			},
+			{
+				"name": "product_Attachment",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "product_Models",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT \r\n\t'983a3ed3-d3d8-f011-8543-000d3a352ac1' AS eet_businessunit,\r\n    2 AS quantitydecimal,\r\n    'b2f82e2d-98ab-46b5-9577-600f4567fcb7' AS defaultuomid,\r\n    '87f51c15-74f0-f011-aa23-6045bd003931' AS organizationid,\r\n    '7a222c89-e501-4949-a7bb-99ce64f9b6a6' AS defaultuomscheduleid,\r\n    'true' AS isstockitem,\r\n    0 AS statecode,\r\n    '6da8bced-935d-f111-a825-6045bd0484dd' AS pricelevelid,\r\n\tCONCAT(UnitNumber, '_', LEFT(CompanyID, 2)) AS productnumber,\r\n    CONCAT(UnitNumber, '_', LEFT(CompanyID, 2)) AS eet_derivedproductnumber,\r\n    TRIM(UnitNumber) AS eet_extendkey,\r\n    '100' AS eet_extendcompany,\r\n\t--1 productstructure,\r\n    TRIM(UnitNumber) AS eet_unitnumber,\r\n    Manufacturer AS eet_make,\r\n    TRIM(Model) AS eet_modelcode,\r\n    ProductCategoryName eet_quipwareproductcategory,\r\n    TRIM(UnitDescription) AS eet_fullname,\r\n    CASE WHEN Used = 'Used' THEN 'true' WHEN Used = 'New' THEN 'false' ELSE 'false' END AS eet_neworused,\r\n    --TRY_CONVERT(date, SalesInvoiceDate) AS eet_purchasedate,\r\n    ModelYear AS eet_makeyear,\r\n    CASE      \r\n        WHEN OwnershipStatus = 'Dealer Owned' THEN 10      \r\n        WHEN OwnershipStatus = 'Customer Stock' THEN 20      \r\n        ELSE NULL      \r\n    END AS eet_ownershipstatus,\r\n    CONCAT(TRIM(Model), '_', Manufacturer) AS name,\r\n    SerialNumber eet_serialno,\r\n    CASE\r\n        WHEN Status = 'Inventory' THEN '276040000'\r\n        WHEN Status = 'Presold' THEN '276040001'\r\n        WHEN Status = 'Rented' THEN '276040002'\r\n        WHEN Status = 'Sold' THEN '276040003'\r\n        WHEN Status = 'Invoiced' THEN '276040003'\r\n        WHEN Status = 'On Order' THEN '276040004'\r\n        WHEN Status = 'Transfer' THEN '276040006'\r\n        ELSE '276040000'\r\n    END AS EquipmentStatus,\r\n    '200001' AS producttypecode,\r\n    LEFT(ManufacturerName, 10) AS eet_manufacturer,\r\n    TRIM(Model) AS ModelName,\r\n    CASE\r\n        WHEN Status = 'On Order' THEN 1\r\n        WHEN PhysicalStatus = 'Rental' THEN 3      \r\n        WHEN PhysicalStatus = 'In the Branch' THEN 2      \r\n        WHEN PhysicalStatus = 'Demo' THEN 5      \r\n        WHEN PhysicalStatus = 'Loaner' THEN 6      \r\n        WHEN PhysicalStatus IN ('In Transit', 'Being Transferred') THEN 7\r\n        WHEN PhysicalStatus = 'Equipment Sale' THEN 4 \r\n        --WHEN PhysicalStatus = 'Service' THEN 14      \r\n        --WHEN PhysicalStatus = 'Held' THEN 15        \r\n    END AS eet_physicalstatus,\r\n    EquipmentSupplier AS BuyFromBP,\r\n\tTRY_CONVERT(DATE, CreatedDate) AS createdon,\r\n\tTRY_CONVERT(DATE, ModifiedDate) AS modifiedon,\r\n    --TRY_CONVERT(date, [Actual Receipt Date]) AS ActualReceiptDate,\r\n    OriginalSalesPrice AS SalesPrice,\r\n    --[Sales Agreement Customer] AS SoldToCustomer,\r\n    Meter1Reading AS Meter1Hours,\r\n    MinimumSellingPrice,\r\n    Book currentcost,\r\n    ParentUnitNumber eet_parentunit,\r\n    CONCAT(UnitNumber, '_', LEFT(CompanyID, 2)) AS ExternalID,\r\n    Price price,\r\n    UnitDescription AS description,\r\n    LEFT(CompanyID, 2) AS Company,\r\n    LEFT(DivisionID, 2) AS Division,\r\n    Cost AS standardcost\r\nFROM      \r\n    dimequipment E  \r\nWHERE       \r\n    CompanyID = '01DEM'  \r\n    AND DivisionID = '01-01DEM'  \r\n\tAND EquipmentType = 'Attachment' AND ParentUnitNumber <> '';\r\n\r\n\r\n\r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DynamicsCrmSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": "eet_product_key",
+						"bypassPowerAutomateFlows": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "createdon",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "createdon",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "defaultuomid",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "defaultuomid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "defaultuomscheduleid",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "defaultuomscheduleid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "description",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_businessunit",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_businessunit",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_extendcompany",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_extendcompany",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_fullname",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_fullname",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_make",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_make",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_modelcode",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_modelcode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_makeyear",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "eet_makeyear",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_manufacturer",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_manufacturer",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_neworused",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "eet_neworused",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_ownershipstatus",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "eet_ownershipstatus",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "EquipmentStatus",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "eet_equipmentstatus",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_physicalstatus",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "eet_physicalstatus",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_unitnumber",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_unitnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "isstockitem",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "isstockitem",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "modifiedon",
+									"type": "DateTime",
+									"physicalType": "date"
+								},
+								"sink": {
+									"name": "modifiedon",
+									"type": "DateTime"
+								}
+							},
+							{
+								"source": {
+									"name": "name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "organizationid",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "organizationid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "price",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 20
+								},
+								"sink": {
+									"name": "price",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "pricelevelid",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "pricelevelid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_derivedproductnumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_derivedproductnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "productnumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "productnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "producttypecode",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "producttypecode",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "quantitydecimal",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "quantitydecimal",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "standardcost",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 20
+								},
+								"sink": {
+									"name": "standardcost",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "statecode",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "statecode",
+									"type": "Int32"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LS_ID_DEMO_FabricLakehouse",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_id_demo_dynamicscrm",
+						"type": "DatasetReference",
+						"parameters": {
+							"EntityName": "product"
+						}
+					}
+				]
+			},
+			{
+				"name": "Contacts",
+				"type": "ExecuteDataFlow",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "products_Options",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_Contacts_ID_DEMO",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"GetAccountID": {
+								"EntityName": "account"
+							},
+							"sink1": {
+								"EntityName": "contact"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "products_Options",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "product_Attachment",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT \r\n\t'983a3ed3-d3d8-f011-8543-000d3a352ac1' AS eet_businessunit,\r\n    2 AS quantitydecimal,\r\n    'b2f82e2d-98ab-46b5-9577-600f4567fcb7' AS defaultuomid,\r\n    '87f51c15-74f0-f011-aa23-6045bd003931' AS organizationid,\r\n    '7a222c89-e501-4949-a7bb-99ce64f9b6a6' AS defaultuomscheduleid,\r\n    'true' AS isstockitem,\r\n    0 AS statecode,\r\n    '6da8bced-935d-f111-a825-6045bd0484dd' AS pricelevelid,\r\n\tCONCAT(StockNumber, '_', OptionNumber, '_', SequenceNumber, '_', LEFT(CompanyID, 2)) AS productnumber,\r\n    CONCAT(StockNumber, '_', OptionNumber, '_', SequenceNumber, '_', LEFT(CompanyID, 2)) AS eet_derivedproductnumber,\r\n    CONCAT(StockNumber, '_', OptionNumber, '_', SequenceNumber) AS eet_extendkey,\r\n    '100' AS eet_extendcompany,\r\n    TRIM(StockNumber) AS eet_unitnumber,\r\n    TRIM(Description) AS eet_fullname,\r\n    Description AS name,\r\n    Description AS description,\r\n    '200002' AS producttypecode,\r\n\tDateAdded AS createdon,\r\n\tDateModified AS modifiedon,\r\n    Price price,\r\n    --LEFT(CompanyID, 2) AS Company,\r\n    --LEFT(Division, 2) AS Division,\r\n    Cost AS standardcost,\r\n    Cost AS currentcost\r\nFROM      \r\n    dimoptions E  \r\nWHERE CompanyID = '01DEM'\r\nAND Division = '01-01DEM'",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DynamicsCrmSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": "eet_product_key",
+						"bypassPowerAutomateFlows": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "currentcost",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 20
+								},
+								"sink": {
+									"name": "currentcost",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "defaultuomid",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "defaultuomid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "defaultuomscheduleid",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "defaultuomscheduleid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "description",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_businessunit",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_businessunit",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_extendcompany",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_extendcompany",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_derivedproductnumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_derivedproductnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_extendkey",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_extendkey",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_fullname",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_fullname",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_unitnumber",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_unitnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "isstockitem",
+									"type": "Boolean",
+									"physicalType": "bit"
+								},
+								"sink": {
+									"name": "isstockitem",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"name": "name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "organizationid",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "organizationid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "price",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 20
+								},
+								"sink": {
+									"name": "price",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "pricelevelid",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "pricelevelid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"name": "productnumber",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "productnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "producttypecode",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "producttypecode",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "quantitydecimal",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "quantitydecimal",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "standardcost",
+									"type": "Decimal",
+									"physicalType": "decimal",
+									"scale": 4,
+									"precision": 20
+								},
+								"sink": {
+									"name": "standardcost",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"name": "statecode",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "statecode",
+									"type": "Int32"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LS_ID_DEMO_FabricLakehouse",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_id_demo_dynamicscrm",
+						"type": "DatasetReference",
+						"parameters": {
+							"EntityName": "product"
+						}
+					}
+				]
+			},
+			{
+				"name": "Equipment Manufacturer",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Contacts",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT eet_code,\r\n       eet_name,\r\n       eet_erpcompany,\r\n       statecode\r\nFROM (\r\n    SELECT \r\n        TRIM(DimID) AS eet_code,\r\n        TRIM(DimDescription) AS eet_name,\r\n        100 AS eet_erpcompany,\r\n        0 AS statecode,\r\n        ROW_NUMBER() OVER (PARTITION BY TRIM(DimID), 101 ORDER BY DimID) AS rn\r\n    FROM dimfin3\r\n    WHERE CompanyNumber = '01DEM'\r\n    AND DimDescription IS NOT NULL\r\n) x\r\nWHERE rn = 1;\r\n\r\n",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DynamicsCrmSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": "eet_manufacturer_key",
+						"bypassPowerAutomateFlows": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "eet_code",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_code",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_erpcompany",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "eet_erpcompany",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_name",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "statecode",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "statecode",
+									"type": "Int32"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LS_ID_DEMO_FabricLakehouse",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_id_demo_dynamicscrm",
+						"type": "DatasetReference",
+						"parameters": {
+							"EntityName": "eet_manufacturer"
+						}
+					}
+				]
+			},
+			{
+				"name": "Equipment ProductCategory",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Equipment Manufacturer",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT DISTINCT\r\n    TRIM(ProductCategory) AS eet_name,\r\n    TRIM(ProductCategoryName) AS eet_description,\r\n\tTRIM(ProductCategoryName) AS eet_category,\r\n\t100 AS eet_erpcompany,\r\n\t0 AS statecode\r\nFROM dimequipment\r\nWHERE ProductCategoryName IS NOT NULL\r\nAND ProductCategory IS NOT NULL\r\nAND TRIM(ProductCategory) <> ''\r\nAND CompanyID = '01DEM' ;",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DynamicsCrmSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": "eet_productcategory_ak",
+						"bypassPowerAutomateFlows": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "eet_category",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_category",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_description",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_erpcompany",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "eet_erpcompany",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "statecode",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "statecode",
+									"type": "Int32"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "LS_ID_DEMO_FabricLakehouse",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "ds_id_demo_dynamicscrm",
+						"type": "DatasetReference",
+						"parameters": {
+							"EntityName": "eet_productcategory"
+						}
+					}
+				]
+			},
+			{
+				"name": "DF_UpdateAccountNumber_ID_DEMO",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_UpdateAccountNumber_ID_DEMO",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"GetProspectAccountsFromCRM": {
+								"EntityName": "account"
+							},
+							"UpdateAccountNumber": {
+								"EntityName": "account"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "DF_UpdateContactNumber_ID_DEMO",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "DF_UpdateAccountNumber_ID_DEMO",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_UpdateContactNumber_ID_DEMO",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"GetContactsFromCRM": {
+								"EntityName": "contact"
+							},
+							"UpdateContactNumber": {
+								"EntityName": "contact"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			},
+			{
+				"name": "DF_UpdateOrderNumber_ID_DEMO",
+				"type": "ExecuteDataFlow",
+				"dependsOn": [
+					{
+						"activity": "DF_UpdateContactNumber_ID_DEMO",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"dataflow": {
+						"referenceName": "DF_UpdateOrderNumber_ID_DEMO",
+						"type": "DataFlowReference",
+						"datasetParameters": {
+							"GetQuoteIDsFromCRM": {
+								"EntityName": "eet_syncstatus"
+							},
+							"UpdateOrderNumber": {
+								"EntityName": "eet_syncstatus"
+							}
+						}
+					},
+					"compute": {
+						"coreCount": 8,
+						"computeType": "General"
+					},
+					"traceLevel": "Fine"
+				}
+			}
+		],
+		"folder": {
+			"name": "DynamicsCRM"
+		},
+		"annotations": [],
+		"lastPublishTime": "2026-06-04T05:52:48Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

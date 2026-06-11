@@ -1,0 +1,595 @@
+{
+	"name": "CRM_Pipeline_New",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Bearer Token",
+				"type": "WebActivity",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": "https://iddep-awfcgwgrf2bnekev.eastus2-01.azurewebsites.net/User/Authenticate",
+					"body": {
+						"tenantCode": "ID",
+						"clientId": "BIAPI-1e3a4db2cee11ed02fc22c062e30d462bf27e480",
+						"clientSecret": "ff774c817c9fc7e9b381f9bacf88a9075bbd85fertui"
+					}
+				}
+			},
+			{
+				"name": "Load Data into Product Entity",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Get Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": {
+								"value": "Bearer @{activity('Get Bearer Token').output.jwtToken}",
+								"type": "Expression"
+							}
+						},
+						"paginationRules": {
+							"AbsoluteUrl.{pageNumber}": "RANGE:1::",
+							"EndCondition:$.more": "Const:false"
+						}
+					},
+					"sink": {
+						"type": "DynamicsCrmSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": {
+							"value": "@variables('Product_AlternateKey')",
+							"type": "Expression"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['make']"
+								},
+								"sink": {
+									"name": "eet_make",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['model']"
+								},
+								"sink": {
+									"name": "eet_modelcode",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['modelname']"
+								},
+								"sink": {
+									"name": "description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['name']"
+								},
+								"sink": {
+									"name": "eet_fullname",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['newOrUsed']"
+								},
+								"sink": {
+									"name": "eet_neworused",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"path": "['unitNo']"
+								},
+								"sink": {
+									"name": "eet_unitnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['vin']"
+								},
+								"sink": {
+									"name": "eet_vehicleidentificationnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['year']"
+								},
+								"sink": {
+									"name": "eet_makeyear",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['ownerShipstatus']"
+								},
+								"sink": {
+									"name": "eet_ownershipstatus",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"path": "['specificationText']"
+								},
+								"sink": {
+									"name": "name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['serialNumber']"
+								},
+								"sink": {
+									"name": "eet_serialno",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['fleetStatus']"
+								},
+								"sink": {
+									"name": "statecode",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"path": "['accountID']"
+								},
+								"sink": {
+									"name": "eet_extendcompany",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"path": "['equipmentType']"
+								},
+								"sink": {
+									"name": "producttypecode",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"path": "['manufacturer']"
+								},
+								"sink": {
+									"name": "eet_manufacturer",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['physicalStatus']"
+								},
+								"sink": {
+									"name": "eet_physicalstatus",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"path": "['productID']"
+								},
+								"sink": {
+									"name": "productnumber",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['price']"
+								},
+								"sink": {
+									"name": "price",
+									"type": "Decimal"
+								}
+							},
+							{
+								"source": {
+									"path": "['businessUnit']"
+								},
+								"sink": {
+									"name": "eet_businessunit",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['decimalsSupported']"
+								},
+								"sink": {
+									"name": "quantitydecimal",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"path": "['defaultUnit']"
+								},
+								"sink": {
+									"name": "defaultuomid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['organizationId']"
+								},
+								"sink": {
+									"name": "organizationid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['unitGroup']"
+								},
+								"sink": {
+									"name": "defaultuomscheduleid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['stockItem']"
+								},
+								"sink": {
+									"name": "isstockitem",
+									"type": "Boolean"
+								}
+							},
+							{
+								"source": {
+									"path": "['defaultPriceList']"
+								},
+								"sink": {
+									"name": "pricelevelid",
+									"type": "Guid"
+								}
+							},
+							{
+								"source": {
+									"path": "['standardCost']"
+								},
+								"sink": {
+									"name": "standardcost",
+									"type": "Decimal"
+								}
+							}
+						],
+						"collectionReference": "$['data']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Fetch_Customers",
+						"type": "DatasetReference",
+						"parameters": {
+							"Name": "GetVehicles"
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference",
+						"parameters": {
+							"EntityName": "product"
+						}
+					}
+				]
+			},
+			{
+				"name": "Equipment_productcategory",
+				"type": "Copy",
+				"state": "Inactive",
+				"onInactiveMarkAs": "Succeeded",
+				"dependsOn": [
+					{
+						"activity": "Get Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT DISTINCT\n    --TRIM(UnitNumber) AS UnitNumber,\n    TRIM(ProductCategory) AS eet_name,\n    TRIM(ProductCategoryName) AS eet_description,\n\tTRIM(ProductCategoryName) AS eet_category,\n\t100 AS eet_erpcompany,\n\t0 AS statecode\nFROM dev.DimEquipment\nWHERE ProductCategoryName IS NOT NULL\n  AND ProductCategory IS NOT NULL\n  AND TRIM(ProductCategory) <> ''\n  AND CompanyNumber = '01DEP'\n  AND DivisionID = '01DEP';",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DynamicsCrmSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": "crdb8_name",
+						"bypassPowerAutomateFlows": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "eet_category",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_category",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_description",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_description",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_erpcompany",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "eet_erpcompany",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_name",
+									"type": "String",
+									"physicalType": "nvarchar"
+								},
+								"sink": {
+									"name": "eet_name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "statecode",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "statecode",
+									"type": "Int32"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "AzureSqlTable2",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference",
+						"parameters": {
+							"EntityName": "eet_productcategory"
+						}
+					}
+				]
+			},
+			{
+				"name": "Equipment_Manufacturer",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": {
+							"value": "SELECT DISTINCT\n    TRIM(DimID) AS eet_code,\n    TRIM(DimDescription) AS eet_name,\n\t100 AS eet_erpcompany,\n\t0 AS statecode\nFROM dev.DimFin3\nWHERE CompanyNumber = '01DEP'",
+							"type": "Expression"
+						},
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DynamicsCrmSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert",
+						"ignoreNullValues": false,
+						"alternateKeyName": "crdb8_code",
+						"bypassPowerAutomateFlows": false
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"name": "eet_code",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_code",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_erpcompany",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "eet_erpcompany",
+									"type": "Int32"
+								}
+							},
+							{
+								"source": {
+									"name": "eet_name",
+									"type": "String",
+									"physicalType": "varchar"
+								},
+								"sink": {
+									"name": "eet_name",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"name": "statecode",
+									"type": "Int32",
+									"physicalType": "int"
+								},
+								"sink": {
+									"name": "statecode",
+									"type": "Int32"
+								}
+							}
+						],
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "AzureSqlTable2",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference",
+						"parameters": {
+							"EntityName": "eet_manufacturer"
+						}
+					}
+				]
+			}
+		],
+		"variables": {
+			"Account_AlternateKey": {
+				"type": "String",
+				"defaultValue": "new_acctnumber"
+			},
+			"Product_AlternateKey": {
+				"type": "String",
+				"defaultValue": "crdb8_productid"
+			},
+			"productpricelevel_AK": {
+				"type": "String",
+				"defaultValue": "crdb8_pricelevelid"
+			},
+			"address": {
+				"type": "String",
+				"defaultValue": "crdb8_addressid"
+			}
+		},
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Data Pipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2025-08-25T07:49:44Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

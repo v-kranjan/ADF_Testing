@@ -1,0 +1,129 @@
+{
+	"name": "DelimitedText1",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "extractfiles",
+			"type": "LinkedServiceReference"
+		},
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Datasets"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "DimDate.csv",
+				"folderPath": "dev",
+				"container": "extractfiles"
+			},
+			"columnDelimiter": ",",
+			"escapeChar": "\\",
+			"firstRowAsHeader": true,
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"name": "full_date",
+				"type": "String"
+			},
+			{
+				"name": "day_of_week",
+				"type": "String"
+			},
+			{
+				"name": "day_num_in_month",
+				"type": "String"
+			},
+			{
+				"name": "day_num_overall",
+				"type": "String"
+			},
+			{
+				"name": "day_name",
+				"type": "String"
+			},
+			{
+				"name": "day_abbrev",
+				"type": "String"
+			},
+			{
+				"name": "weekday_flag",
+				"type": "String"
+			},
+			{
+				"name": "week_num_in_year",
+				"type": "String"
+			},
+			{
+				"name": "week_num_overall",
+				"type": "String"
+			},
+			{
+				"name": "week_begin_date",
+				"type": "String"
+			},
+			{
+				"name": "week_begin_date_key",
+				"type": "String"
+			},
+			{
+				"name": "month",
+				"type": "String"
+			},
+			{
+				"name": "month_num_overall",
+				"type": "String"
+			},
+			{
+				"name": "month_name",
+				"type": "String"
+			},
+			{
+				"name": "month_abbrev",
+				"type": "String"
+			},
+			{
+				"name": "quarter",
+				"type": "String"
+			},
+			{
+				"name": "year",
+				"type": "String"
+			},
+			{
+				"name": "yearmo",
+				"type": "String"
+			},
+			{
+				"name": "fiscal_month",
+				"type": "String"
+			},
+			{
+				"name": "fiscal_quarter",
+				"type": "String"
+			},
+			{
+				"name": "fiscal_year",
+				"type": "String"
+			},
+			{
+				"name": "last_day_in_month_flag",
+				"type": "String"
+			},
+			{
+				"name": "same_weekday_year_ago_date",
+				"type": "String"
+			},
+			{
+				"name": "half_year",
+				"type": "String"
+			},
+			{
+				"name": "fiscal_half_year",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

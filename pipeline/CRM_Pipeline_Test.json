@@ -1,0 +1,156 @@
+{
+	"name": "CRM_Pipeline_Test",
+	"properties": {
+		"activities": [
+			{
+				"name": "Get Bearer Token",
+				"type": "WebActivity",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"method": "POST",
+					"url": "https://iddep-awfcgwgrf2bnekev.eastus2-01.azurewebsites.net/User/Authenticate",
+					"body": {
+						"tenantCode": "ID",
+						"clientId": "BIAPI-1e3a4db2cee11ed02fc22c062e30d462bf27e480",
+						"clientSecret": "ff774c817c9fc7e9b381f9bacf88a9075bbd85fertui"
+					}
+				}
+			},
+			{
+				"name": "Load Data into CRM",
+				"type": "Copy",
+				"dependsOn": [
+					{
+						"activity": "Get Bearer Token",
+						"dependencyConditions": [
+							"Succeeded"
+						]
+					}
+				],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "RestSource",
+						"httpRequestTimeout": "00:01:40",
+						"requestInterval": "00.00:00:00.010",
+						"requestMethod": "GET",
+						"additionalHeaders": {
+							"Authorization": {
+								"value": "Bearer @{activity('Get Bearer Token').output.jwtToken}",
+								"type": "Expression"
+							}
+						},
+						"paginationRules": {
+							"AbsoluteUrl.{pageNumber}": "RANGE:1::",
+							"EndCondition:$.more": "Const:false"
+						}
+					},
+					"sink": {
+						"type": "DelimitedTextSink",
+						"storeSettings": {
+							"type": "AzureBlobStorageWriteSettings"
+						},
+						"formatSettings": {
+							"type": "DelimitedTextWriteSettings",
+							"quoteAllText": true,
+							"fileExtension": ".txt"
+						}
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"mappings": [
+							{
+								"source": {
+									"path": "['account']"
+								},
+								"sink": {
+									"name": "account",
+									"type": "String"
+								}
+							},
+							{
+								"source": {
+									"path": "['customerName']"
+								},
+								"sink": {
+									"name": "customerName",
+									"type": "String"
+								}
+							}
+						],
+						"collectionReference": "$['data']"
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "Fetch_Customers_Test",
+						"type": "DatasetReference",
+						"parameters": {
+							"TenantCode": {
+								"value": "@pipeline().parameters.TenantCode",
+								"type": "Expression"
+							},
+							"CompanyId": {
+								"value": "@pipeline().parameters.CompanyId",
+								"type": "Expression"
+							},
+							"PageSize": {
+								"value": "@pipeline().parameters.PageSize",
+								"type": "Expression"
+							}
+						}
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "Source_Test",
+						"type": "DatasetReference",
+						"parameters": {
+							"TenantID": "dep"
+						}
+					}
+				]
+			}
+		],
+		"parameters": {
+			"TenantCode": {
+				"type": "string",
+				"defaultValue": "ID"
+			},
+			"CompanyId": {
+				"type": "string",
+				"defaultValue": "01"
+			},
+			"PageNumber": {
+				"type": "string",
+				"defaultValue": "1"
+			},
+			"PageSize": {
+				"type": "string",
+				"defaultValue": "50"
+			}
+		},
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Data Pipelines"
+		},
+		"annotations": [],
+		"lastPublishTime": "2024-12-04T05:59:38Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

@@ -1,0 +1,78 @@
+{
+	"name": "DF_UpdateContactNumber",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference"
+					},
+					"name": "GetContactsFromCRM"
+				},
+				{
+					"dataset": {
+						"referenceName": "DS_ID_FabricLakehouse",
+						"type": "DatasetReference"
+					},
+					"name": "GetContactsFromBI"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DS_ID_DynamicsCRM",
+						"type": "DatasetReference"
+					},
+					"name": "UpdateContactNumber"
+				}
+			],
+			"transformations": [
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "InnerJoin"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          {@odata.etag} as string,",
+				"          contactid as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: '<fetch>\\n  <entity name=\"contact\">\\n    <attribute name=\"eet_contactcode\" />\\n    <filter type=\"and\">\\n      <condition attribute=\"eet_contactcode\" operator=\"null\" />\\n    </filter>\\n  </entity>\\n</fetch>\\n') ~> GetContactsFromCRM",
+				"source(output(",
+				"          ErpCrmID as string,",
+				"          ContactCode as string,",
+				"          eet_extendkey as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     query: (\"SELECT ErpCrmID, concat(CustomerCode, '-' , ContactCode) AS ContactCode, concat(trim(CustomerCode), '-', trim(ContactCode)) AS eet_extendkey FROM dimcontactbybusinesspartner C INNER JOIN crmgatekeeper GK ON concat(CustomerCode, '-' , ContactCode) = GK.ProcessedID AND C.CompanyID = GK.CompanyID AND C.DivisionID = GK.DivisionID  WHERE EntryType = 'CONTACT'\"),",
+				"     format: 'query') ~> GetContactsFromBI",
+				"InnerJoin alterRow(updateIf(true())) ~> AlterRow1",
+				"GetContactsFromCRM, GetContactsFromBI join(contactid == ErpCrmID,",
+				"     joinType:'inner',",
+				"     matchType:'exact',",
+				"     ignoreSpaces: false,",
+				"     broadcast: 'auto')~> InnerJoin",
+				"AlterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:true,",
+				"     upsertable:false,",
+				"     alternateKeyName: 'crdb8_extendkey',",
+				"     mapColumn(",
+				"          contactid,",
+				"          eet_contactcode = ContactCode,",
+				"          eet_extendkey",
+				"     )) ~> UpdateContactNumber"
+			]
+		}
+	}
+}

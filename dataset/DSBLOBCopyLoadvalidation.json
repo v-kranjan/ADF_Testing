@@ -1,0 +1,69 @@
+{
+	"name": "DSBLOBCopyLoadvalidation",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "extractfiles",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"CompanyID": {
+				"type": "string"
+			}
+		},
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Datasets"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "LoadValidationDetails.txt",
+				"folderPath": {
+					"value": "@concat(dataset().CompanyID,'/Checksum')",
+					"type": "Expression"
+				},
+				"container": "extractfiles"
+			},
+			"columnDelimiter": "\t",
+			"escapeChar": "\\",
+			"quoteChar": "\""
+		},
+		"schema": [
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			},
+			{
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

@@ -1,0 +1,24 @@
+{
+	"name": "CRM_DataSync",
+	"properties": {
+		"annotations": [],
+		"runtimeState": "Started",
+		"pipelines": [
+			{
+				"pipelineReference": {
+					"referenceName": "Update Dynamics CRM",
+					"type": "PipelineReference"
+				}
+			}
+		],
+		"type": "ScheduleTrigger",
+		"typeProperties": {
+			"recurrence": {
+				"frequency": "Hour",
+				"interval": 1,
+				"startTime": "2026-01-29T05:35:00",
+				"timeZone": "India Standard Time"
+			}
+		}
+	}
+}

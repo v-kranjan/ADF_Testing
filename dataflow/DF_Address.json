@@ -1,0 +1,137 @@
+{
+	"name": "DF_Address",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "Fetch_API_Data",
+						"type": "DatasetReference"
+					},
+					"name": "GetAddressFromAPI"
+				},
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity_Lookup",
+						"type": "DatasetReference"
+					},
+					"name": "GetAccountIDFromCRM"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "flatten1"
+				},
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "derivedColumn1"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     Token as string",
+				"}",
+				"source(output(",
+				"          body as (currentPageNumber as short, data as (address1 as string, address2 as string, address3 as string, addressCode as integer, addressKey as string, addressName as string, addressNumber as short, appartmentNumber as short, city as string, company as short, country as string, countryCode as string, county as string, division as short, erpKey as string, fax as short, invoiceTo as boolean, latitude as string, longitude as string, phone as string, postalZipCode as integer, sequenceNumber as short, shipTo as boolean, soldTo as boolean, stateCode as string, status as string, web as string)[], more as boolean, nextPageNumber as short, pageSize as short, totalPages as short, totalRecords as short),",
+				"          headers as [string,string]",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     httpMethod: 'GET',",
+				"     timeout: 30,",
+				"     requestInterval: 0,",
+				"     headers: ['Authorization' -> (concat('Bearer ', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCIsImtpZCI6IklEMUdXRDdEQTJNMTREMzZBQiRZVUkyMzREOVVKMjM0NUYkS0owOSJ9.eyJqdGkiOiIwZDljOWViMi1jY2IyLTQwMDUtYjZmZC00OTRmZWIzNTY4NGEiLCJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2NsYWltcy9uYW1laWRlbnRpZmllciI6IklEIiwiZXhwIjoxNzU0ODkwMTQwLCJpc3MiOiJodHRwOi8vbG9jYWxob3N0OjU2ODY2LyIsImF1ZCI6Imh0dHA6Ly9sb2NhbGhvc3Q6NTY4NjYvIn0.W4zpiH4VLvP41xScornhzpQinaf5r9cCCfEAizV-Gok'))],",
+				"     paginationRules: ['supportRFC5988' -> 'true'],",
+				"     responseFormat: ['type' -> 'json', 'documentForm' -> 'singleDocument'],",
+				"     booleanFormat: ['true', 'false']) ~> GetAddressFromAPI",
+				"source(output(",
+				"          {@odata.etag} as string,",
+				"          accountid as string,",
+				"          accountnumber as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: '<fetch>\\n   <entity name=\"account\">\\n       <attribute name=\"accountid\" />\\n       <attribute name=\"accountnumber\" />\\n   </entity>\\n</fetch>') ~> GetAccountIDFromCRM",
+				"flatten1, GetAccountIDFromCRM lookup(trim(toString(addressCode)) == trim(accountnumber),",
+				"     multiple: true,",
+				"     broadcast: 'auto',",
+				"     pickup: 'any')~> lookup1",
+				"GetAddressFromAPI foldDown(unroll(body.data),",
+				"     mapColumn(",
+				"          address1 = body.data.address1,",
+				"          address2 = body.data.address2,",
+				"          address3 = body.data.address3,",
+				"          addressCode = body.data.addressCode,",
+				"          addressKey = body.data.addressKey,",
+				"          addressName = body.data.addressName,",
+				"          addressNumber = body.data.addressNumber,",
+				"          appartmentNumber = body.data.appartmentNumber,",
+				"          city = body.data.city,",
+				"          company = body.data.company,",
+				"          country = body.data.country,",
+				"          countryCode = body.data.countryCode,",
+				"          county = body.data.county,",
+				"          division = body.data.division,",
+				"          erpKey = body.data.erpKey,",
+				"          fax = body.data.fax,",
+				"          invoiceTo = body.data.invoiceTo,",
+				"          latitude = body.data.latitude,",
+				"          longitude = body.data.longitude,",
+				"          phone = body.data.phone,",
+				"          postalZipCode = body.data.postalZipCode,",
+				"          sequenceNumber = body.data.sequenceNumber,",
+				"          shipTo = body.data.shipTo,",
+				"          soldTo = body.data.soldTo,",
+				"          stateCode = body.data.stateCode,",
+				"          status = body.data.status,",
+				"          web = body.data.web",
+				"     ),",
+				"     skipDuplicateMapInputs: false,",
+				"     skipDuplicateMapOutputs: false) ~> flatten1",
+				"lookup1 alterRow(upsertIf(true())) ~> AlterRow1",
+				"AlterRow1 derive({parentid_account@odata.bind} = \"/accounts(\" + accountid + \")\",",
+				"          eet_state = 276040000,",
+				"          eet_email = \"Test@ee.com\",",
+				"          eet_country = 276040000,",
+				"          eet_extendcompany = 100) ~> derivedColumn1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:true,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     alternateKeyName: 'crdb8_erpkey',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          {parentid_account@odata.bind},",
+				"          eet_extendkey = erpKey,",
+				"          eet_country,",
+				"          eet_email,",
+				"          eet_extendcompany,",
+				"          eet_state,",
+				"          line1 = address1,",
+				"          name = addressName,",
+				"          eet_deliveryaddress = shipTo,",
+				"          eet_invoiceaddress = invoiceTo,",
+				"          eet_orderingaddress = soldTo",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

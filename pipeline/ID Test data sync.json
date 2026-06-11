@@ -1,0 +1,60 @@
+{
+	"name": "ID Test data sync",
+	"properties": {
+		"activities": [
+			{
+				"name": "Accounts",
+				"type": "Copy",
+				"dependsOn": [],
+				"policy": {
+					"timeout": "0.12:00:00",
+					"retry": 0,
+					"retryIntervalInSeconds": 30,
+					"secureOutput": false,
+					"secureInput": false
+				},
+				"userProperties": [],
+				"typeProperties": {
+					"source": {
+						"type": "AzureSqlSource",
+						"sqlReaderQuery": "SELECT                 \r\n\tTRIM(A.CustomerCode)\t\taccountnumber\r\n\t, A.CustomerName\t\t\tname\r\n\t, A.CustomerCity\t\t\taddress1_city\r\n\t, A.CustomerCounty\t\t\taddress1_county\r\n\t, A.CustomerCountry\t\t\taddress1_country\r\n\t, A.Fax\t\t\t\t\t\taddress1_fax\r\n\t, A.CustomerAddress1\t\taddress1_line1\r\n\t, A.CustomerZipCode\t\t\taddress1_postalcode\r\n\t, A.CustomerStateProvince\taddress1_stateorprovince\r\n\t, A.Telephone\t\t\t\taddress1_telephone1\r\n\t, A.TotalCreditLimit\t\tcreditlimit\r\n\t, A.[E-mail]\t\t\t\temailaddress1\r\n    , 101\t\t\t\t\t\teet_extendcompany \r\n\t, TRIM(A.CustomerCode)      eet_extendkey\r\n\t, CONCAT (TRIM(A.CustomerCode),'-', LEFT(CompanyNumber,2), '-',LEFT(DivisionID,2)) AS address1_name\r\n\t, Fax\t\t\t\t\t\tfax\r\n\t, CASE WHEN CustomerStatus = 'Active' THEN '0' ELSE 1 END statecode\r\n\t, TRY_CONVERT(date, A.[Creation_Date]) AS createdon\r\n\t, TRY_CONVERT(date, A.[ModificationDate]) AS modifiedon\r\n\t, CASE WHEN CustomerStatus = 'Active' THEN '276040000' \r\n            WHEN CustomerStatus = 'Prospect' THEN '276040002' \r\n            WHEN CustomerStatus = 'Deleted' THEN '276040001' \r\n        END AS eet_accounttype\r\n\t, 1 as address1_addresstypecode\r\n\t, 'true' eet_soldtorole\r\n\t, 'false' eet_shipto\r\n\t, 'true' eet_soldto\r\n\t, 'true' eet_invoiceto\r\nFROM dimcustomer A \r\nWHERE A.CompanyNumber ='01AHE' --AND A.DivisionID ='01DEP'  \r\n\t--AND A.CustomerCode = 'PALME029'\r\n\t-- AND CustomerStatus ='Active'\r\n\t-- AND a.customercode not like '?%'              \r\n\t-- AND a.customercode not like '.%'           \r\n\t-- and a.customercode not like ' %'           \r\n\t-- and CustomerName NOT LIKE '%' + CHAR(26) + '%'  \r\n\t--and a.customercode in ( select distinct customercode from dev.DimContactByBusinessPartner)   ",
+						"queryTimeout": "02:00:00",
+						"partitionOption": "None"
+					},
+					"sink": {
+						"type": "DynamicsCrmSink",
+						"writeBatchSize": 10,
+						"writeBehavior": "upsert"
+					},
+					"enableStaging": false,
+					"translator": {
+						"type": "TabularTranslator",
+						"typeConversion": true,
+						"typeConversionSettings": {
+							"allowDataTruncation": true,
+							"treatBooleanAsNumber": false
+						}
+					}
+				},
+				"inputs": [
+					{
+						"referenceName": "DS_ID_FabricLakehouse",
+						"type": "DatasetReference"
+					}
+				],
+				"outputs": [
+					{
+						"referenceName": "DS_ID_DynamicsCRM",
+						"type": "DatasetReference",
+						"parameters": {
+							"EntityName": "account"
+						}
+					}
+				]
+			}
+		],
+		"annotations": [],
+		"lastPublishTime": "2025-12-01T09:14:44Z"
+	},
+	"type": "Microsoft.DataFactory/factories/pipelines"
+}

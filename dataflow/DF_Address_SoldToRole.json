@@ -1,0 +1,59 @@
+{
+	"name": "DF_Address_SoldToRole",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity_Lookup",
+						"type": "DatasetReference"
+					},
+					"name": "GetCustomerAddressIdFromCRM"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "AlterRow1"
+				}
+			],
+			"scriptLines": [
+				"source(output(",
+				"          {@odata.etag} as string,",
+				"          addressnumber as string,",
+				"          customeraddressid as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: '<fetch>\\n  <entity name=\"customeraddress\">\\n    <attribute name=\"customeraddressid\" />\\n    <attribute name=\"eet_extendkey\" />\\n    <attribute name=\"addressnumber\" />\\n    <filter>\\n      <condition attribute=\"addressnumber\" operator=\"eq\" value=\"1\" />\\n    </filter>\\n  </entity>\\n</fetch>\\n') ~> GetCustomerAddressIdFromCRM",
+				"GetCustomerAddressIdFromCRM derive(eet_soldtorole = true()) ~> derivedColumn1",
+				"derivedColumn1 alterRow(upsertIf(true())) ~> AlterRow1",
+				"AlterRow1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     alternateKeyName: 'crdb8_erpkey',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          customeraddressid,",
+				"          eet_orderingaddress = eet_soldtorole",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

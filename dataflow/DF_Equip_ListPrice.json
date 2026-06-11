@@ -1,0 +1,101 @@
+{
+	"name": "DF_Equip_ListPrice",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable2",
+						"type": "DatasetReference"
+					},
+					"name": "GetUnitNumber"
+				},
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity_Lookup1",
+						"type": "DatasetReference"
+					},
+					"name": "GetproductIDfromProduct"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "filter1"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     Token as string",
+				"}",
+				"source(output(",
+				"          eet_unitnumber as string,",
+				"          name as string,",
+				"          eet_effectivedate as date,",
+				"          eet_expirydate as date,",
+				"          eet_price as decimal(20,4),",
+				"          statecode as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     procedureName: 'EquipmentListPrice',",
+				"     schemaName: 'depapi',",
+				"     resultSet: true,",
+				"     format: 'procedure',",
+				"     booleanFormat: ['true', 'false']) ~> GetUnitNumber",
+				"source(output(",
+				"          {@odata.etag} as string,",
+				"          eet_unitnumber as string,",
+				"          productid as string,",
+				"          productnumber as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: '<fetch>\\n   <entity name=\"product\">\\n       <attribute name=\"productid\" />\\n       <attribute name=\"productnumber\" />\\n       <attribute name=\"name\" alias=\"productname\" />\\n       <attribute name=\"eet_unitnumber\" />\\n       <filter type=\"and\">\\n         \\n           <condition attribute=\"eet_unitnumber\" operator=\"not-null\" />\\n           <condition attribute=\"productnumber\" operator=\"not-null\" />\\n       </filter>\\n   </entity>\\n</fetch>\\n') ~> GetproductIDfromProduct",
+				"lookup1 alterRow(upsertIf(true())) ~> AlterRow1",
+				"filter1 derive({eet_productid@odata.bind} = \"/products(\" + productid + \")\") ~> derivedColumn1",
+				"GetUnitNumber, GetproductIDfromProduct lookup(trim(GetUnitNumber@eet_unitnumber) == trim(GetproductIDfromProduct@eet_unitnumber),",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup1",
+				"AlterRow1 filter(isNull(productnumber) == false()) ~> filter1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     alternateKeyName: 'crdb8_key',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          {eet_productid@odata.bind},",
+				"          eet_effectivedate,",
+				"          eet_expirydate,",
+				"          eet_price,",
+				"          statecode,",
+				"          eet_name = GetUnitNumber@eet_unitnumber",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

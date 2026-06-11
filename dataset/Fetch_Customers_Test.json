@@ -1,0 +1,33 @@
+{
+	"name": "Fetch_Customers_Test",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "RestService1",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TenantCode": {
+				"type": "string",
+				"defaultValue": "ID"
+			},
+			"CompanyId": {
+				"type": "string",
+				"defaultValue": "01"
+			},
+			"PageSize": {
+				"type": "string",
+				"defaultValue": "100"
+			}
+		},
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Datasets"
+		},
+		"annotations": [],
+		"type": "RestResource",
+		"typeProperties": {
+			"relativeUrl": "/Common/GetCustomers?TenantCode=ID&CompanyId=01&PageSize=5000&PageNumber={pageNumber}"
+		},
+		"schema": []
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}

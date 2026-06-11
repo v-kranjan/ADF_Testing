@@ -1,0 +1,16 @@
+{
+	"name": "Lakehouse1",
+	"type": "Microsoft.DataFactory/factories/linkedservices",
+	"properties": {
+		"annotations": [],
+		"type": "Lakehouse",
+		"typeProperties": {
+			"workspaceId": "89c44276-89c5-42ee-932b-3c47eaecb424",
+			"artifactId": "29fde377-1222-4fc6-adc8-6183263453c2",
+			"tenant": "a6c19790-0d5b-4926-853d-8d14efcbdce6",
+			"servicePrincipalId": "1568ba9e-2683-4c8e-9f07-a0c1ae98ab79 ",
+			"servicePrincipalCredentialType": "ServicePrincipalKey",
+			"encryptedCredential": "ew0KICAiVmVyc2lvbiI6ICIyMDE3LTExLTMwIiwNCiAgIlByb3RlY3Rpb25Nb2RlIjogIktleSIsDQogICJTZWNyZXRDb250ZW50VHlwZSI6ICJQbGFpbnRleHQiLA0KICAiQ3JlZGVudGlhbElkIjogIkRBVEFGQUNUT1JZQEE1MjQ4NUFCLUNCMTgtNEIyRC04MTExLUQ5N0Y0REMxNDI2Rl82NWUxOTIxNy00MjVlLTRhYTItYWFhMC1lNzEwYTI1OGQxNjYiDQp9"
+		}
+	}
+}

@@ -1,0 +1,115 @@
+{
+	"name": "DF_Equip_Manufacturer",
+	"properties": {
+		"type": "MappingDataFlow",
+		"typeProperties": {
+			"sources": [
+				{
+					"dataset": {
+						"referenceName": "AzureSqlTable2",
+						"type": "DatasetReference"
+					},
+					"name": "GetUnitNumber"
+				},
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity_Lookup",
+						"type": "DatasetReference"
+					},
+					"name": "GetProductCategoryIdFromCRM"
+				},
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity_Lookup1",
+						"type": "DatasetReference"
+					},
+					"name": "GetproductIDfromProduct"
+				}
+			],
+			"sinks": [
+				{
+					"dataset": {
+						"referenceName": "DynamicsCrmEntity",
+						"type": "DatasetReference"
+					},
+					"name": "sink1"
+				}
+			],
+			"transformations": [
+				{
+					"name": "lookup1"
+				},
+				{
+					"name": "AlterRow1"
+				},
+				{
+					"name": "derivedColumn1"
+				},
+				{
+					"name": "lookup2"
+				},
+				{
+					"name": "filter1"
+				}
+			],
+			"scriptLines": [
+				"parameters{",
+				"     Token as string",
+				"}",
+				"source(output(",
+				"          UnitNumber as string,",
+				"          eet_name as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     isolationLevel: 'READ_UNCOMMITTED',",
+				"     procedureName: 'EquipmentProductCategory',",
+				"     schemaName: 'depapi',",
+				"     resultSet: true,",
+				"     format: 'procedure',",
+				"     booleanFormat: ['true', 'false']) ~> GetUnitNumber",
+				"source(output(",
+				"          {@odata.etag} as string,",
+				"          eet_name as string,",
+				"          eet_productcategoryid as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: '<fetch>\\n   <entity name=\"eet_productcategory\">\\n       <attribute name=\"eet_productcategoryid\" />\\n       <attribute name=\"eet_name\" />\\n   </entity>\\n</fetch>') ~> GetProductCategoryIdFromCRM",
+				"source(output(",
+				"          {@odata.etag} as string,",
+				"          eet_unitnumber as string,",
+				"          productid as string,",
+				"          productnumber as string",
+				"     ),",
+				"     allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     query: '<fetch>\\n   <entity name=\"product\">\\n       <attribute name=\"productid\" />\\n       <attribute name=\"productnumber\" />\\n       <attribute name=\"eet_unitnumber\" />\\n       <filter type=\"and\">\\n           <condition attribute=\"eet_unitnumber\" operator=\"not-null\" />\\n           <condition attribute=\"productnumber\" operator=\"not-null\" />\\n       </filter>\\n   </entity>\\n</fetch>\\n') ~> GetproductIDfromProduct",
+				"GetUnitNumber, GetProductCategoryIdFromCRM lookup(trim(toString(GetUnitNumber@eet_name)) == trim(GetProductCategoryIdFromCRM@eet_name),",
+				"     multiple: true,",
+				"     broadcast: 'auto',",
+				"     pickup: 'any')~> lookup1",
+				"lookup2 alterRow(upsertIf(true())) ~> AlterRow1",
+				"filter1 derive({eet_productcategoryid@odata.bind} = \"/eet_productcategories(\" + eet_productcategoryid + \")\") ~> derivedColumn1",
+				"lookup1, GetproductIDfromProduct lookup(trim(UnitNumber) == trim(eet_unitnumber),",
+				"     multiple: false,",
+				"     pickup: 'any',",
+				"     broadcast: 'auto')~> lookup2",
+				"AlterRow1 filter(isNull(productnumber) == false()) ~> filter1",
+				"derivedColumn1 sink(allowSchemaDrift: true,",
+				"     validateSchema: false,",
+				"     deletable:false,",
+				"     insertable:false,",
+				"     updateable:false,",
+				"     upsertable:true,",
+				"     alternateKeyName: 'crdb8_productid',",
+				"     skipDuplicateMapInputs: true,",
+				"     skipDuplicateMapOutputs: true,",
+				"     mapColumn(",
+				"          {eet_productcategoryid@odata.bind},",
+				"          productnumber",
+				"     )) ~> sink1"
+			]
+		}
+	}
+}

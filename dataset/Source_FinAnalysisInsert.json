@@ -1,0 +1,226 @@
+{
+	"name": "Source_FinAnalysisInsert",
+	"properties": {
+		"linkedServiceName": {
+			"referenceName": "extractfiles",
+			"type": "LinkedServiceReference"
+		},
+		"parameters": {
+			"TenantID": {
+				"type": "string",
+				"defaultValue": "dep"
+			}
+		},
+		"folder": {
+			"name": "e-Emphasys BI 5.2 Datasets"
+		},
+		"annotations": [],
+		"type": "DelimitedText",
+		"typeProperties": {
+			"location": {
+				"type": "AzureBlobStorageLocation",
+				"fileName": "FactFinAnalysis.csv",
+				"folderPath": {
+					"value": "@dataset().TenantID",
+					"type": "Expression"
+				},
+				"container": "extractfiles"
+			},
+			"columnDelimiter": "\t",
+			"escapeChar": "",
+			"firstRowAsHeader": true,
+			"quoteChar": ""
+		},
+		"schema": [
+			{
+				"name": "AccountKey",
+				"type": "String"
+			},
+			{
+				"name": "Fin1Key",
+				"type": "String"
+			},
+			{
+				"name": "Fin2Key",
+				"type": "String"
+			},
+			{
+				"name": "Fin3Key",
+				"type": "String"
+			},
+			{
+				"name": "Fin4Key",
+				"type": "String"
+			},
+			{
+				"name": "Fin5Key",
+				"type": "String"
+			},
+			{
+				"name": "FiscalYear",
+				"type": "String"
+			},
+			{
+				"name": "FiscalMonth",
+				"type": "String"
+			},
+			{
+				"name": "TxnAmount",
+				"type": "String"
+			},
+			{
+				"name": "Transaction Type",
+				"type": "String"
+			},
+			{
+				"name": "DocumentNumber",
+				"type": "String"
+			},
+			{
+				"name": "BPNumber",
+				"type": "String"
+			},
+			{
+				"name": "OrderReference",
+				"type": "String"
+			},
+			{
+				"name": "OrderPosition",
+				"type": "String"
+			},
+			{
+				"name": "Sequence",
+				"type": "String"
+			},
+			{
+				"name": "Part",
+				"type": "String"
+			},
+			{
+				"name": "EquipmentKey",
+				"type": "String"
+			},
+			{
+				"name": "TransRefer",
+				"type": "String"
+			},
+			{
+				"name": "BatchRef",
+				"type": "String"
+			},
+			{
+				"name": "OrderInvoiceNumber",
+				"type": "String"
+			},
+			{
+				"name": "OrderInvoiceSequence",
+				"type": "String"
+			},
+			{
+				"name": "FinalDate",
+				"type": "String"
+			},
+			{
+				"name": "FinalTime",
+				"type": "String"
+			},
+			{
+				"name": "CompanyID",
+				"type": "String"
+			},
+			{
+				"name": "CurrencyKey",
+				"type": "String"
+			},
+			{
+				"name": "FSTCode",
+				"type": "String"
+			},
+			{
+				"name": "DocumentDateKey",
+				"type": "String"
+			},
+			{
+				"name": "LineNumber",
+				"type": "String"
+			},
+			{
+				"name": "Sequence Number",
+				"type": "String"
+			},
+			{
+				"name": "Background SeqNo",
+				"type": "String"
+			},
+			{
+				"name": "Correction Transaction Type",
+				"type": "String"
+			},
+			{
+				"name": "Correction Invoice Number",
+				"type": "String"
+			},
+			{
+				"name": "LastUsedBy",
+				"type": "String"
+			},
+			{
+				"name": "ServiceOrder",
+				"type": "String"
+			},
+			{
+				"name": "SegmentNo",
+				"type": "String"
+			},
+			{
+				"name": "Debit/Credit",
+				"type": "String"
+			},
+			{
+				"name": "Tax Code",
+				"type": "String"
+			},
+			{
+				"name": "InvoiceTypeCode",
+				"type": "String"
+			},
+			{
+				"name": "InvoiceNumber",
+				"type": "String"
+			},
+			{
+				"name": "Cost Component",
+				"type": "String"
+			},
+			{
+				"name": "Reference",
+				"type": "String"
+			},
+			{
+				"name": "FinancialTransaction",
+				"type": "String"
+			},
+			{
+				"name": "BatchNumber",
+				"type": "String"
+			},
+			{
+				"name": "SharedCompanyNumber",
+				"type": "String"
+			},
+			{
+				"name": "SharedLogisticCompany",
+				"type": "String"
+			},
+			{
+				"name": "PeriodType",
+				"type": "String"
+			},
+			{
+				"name": "ID",
+				"type": "String"
+			}
+		]
+	},
+	"type": "Microsoft.DataFactory/factories/datasets"
+}
